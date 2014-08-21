@@ -1,0 +1,5 @@
+source "https://supermarket.getchef.com"
+
+metadata
+
+cookbook 'core', path: '/Users/cdymek/Workspaces/cdymekcom/cookbooks/core'

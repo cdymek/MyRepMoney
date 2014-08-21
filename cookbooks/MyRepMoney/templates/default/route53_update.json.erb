@@ -1,0 +1,20 @@
+{
+	"Comment": "This should update the IP address associated with the specified doman name(s)",
+	"Changes": [
+		{
+			"Action": "UPSERT",
+			"ResourceRecordSet": {
+				"Name": "<%= @domain_name %>",
+				"Type": "A",
+				"TTL": 300,
+				"ResourceRecords": [
+					{
+						"Value": "<%= @public_ipv4 %>"
+					}
+				]
+			}
+		}
+	]
+}
+				
+

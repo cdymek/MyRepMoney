@@ -1,0 +1,46 @@
+echo "$(date): Beginning database setup" >> /tmp/app-setup.log
+
+mkdir /tmp/mysql
+if [ "$?" -ne "0" ]; then
+  echo "$(date): mkdir /tmp/mysql failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+cd /tmp/mysql
+if [ "$?" -ne "0" ]; then
+  echo "$(date): cd /tmp/mysql failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+s3cmd get <%= @s3_source_url %>/<%= @mysql_source_filename %>
+if [ "$?" -ne "0" ]; then
+  echo "$(date): s3cmd get <%= @s3_source_url %>/<%= @mysql_source_filename %> failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+mysql -u <%= @db_username_var %> -p<%= @db_password_var %> -h <%= @db_host_var %> <%= @db_name_var %> < <%= @mysql_source_filename %>
+if [ "$?" -ne "0" ]; then
+  echo "$(date): mysql -u <%= @db_username_var %> -p<%= @db_password_var %> -h <%= @db_host_var %> <%= @db_name_var %> < <%= @mysql_source_filename %> failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+mysql -u <%= @db_username_var %> -p<%= @db_password_var %> -h <%= @db_host_var %> <%= @db_name_var %> -e "update wp_options set option_value = 'http://<%= @domain_name %>/blog' where option_id = 1;"
+if [ "$?" -ne "0" ]; then
+  echo "$(date): mysql -u <%= @db_username_var %> -p<%= @db_password_var %> -h <%= @db_host_var %> <%= @db_name_var %> -e update wp_options set option_value = 'http://<%= @domain_name %>/blog' where option_id = 1; failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+cd ~
+if [ "$?" -ne "0" ]; then
+  echo "$(date): cd ~ failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+rm -rf /tmp/mysql
+if [ "$?" -ne "0" ]; then
+  echo "$(date): rm -rf /tmp/mysql failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+echo "$(date): Completed database setup" >> /tmp/app-setup.log
+exit 0

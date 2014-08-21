@@ -1,0 +1,29 @@
+#!/bin/sh
+echo "$(date): Beginning database backup" >> /tmp/app-backup.log
+
+mkdir /tmp/database
+if [ "$?" -ne "0" ]; then
+  echo "$(date): mkdir /tmp/database failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+mysqldump -u <%= @db_username_var %> -p<%= @db_password_var %> -h <%= @db_host_var %> <%= @db_name_var %> > /tmp/database/<%= @mysql_source_filename %>
+if [ "$?" -ne "0" ]; then
+  echo "$(date): mysqldump -u <%= @db_username_var %> -p<%= @db_password_var %> -h <%= @db_host_var %> <%= @db_name_var %> > /tmp/database/<%= @mysql_source_filename %> failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+s3cmd put  /tmp/database/<%= @mysql_source_filename %> <%= @s3_source_url %>/<%= @mysql_source_filename %>
+if [ "$?" -ne "0" ]; then
+  echo "$(date): s3cmd put  /tmp/database/<%= @mysql_source_filename %> <%= @s3_source_url %>/<%= @mysql_source_filename %> failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+rm -rf /tmp/database
+if [ "$?" -ne "0" ]; then
+  echo "$(date): rm -rf /tmp/database failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+echo "$(date): Completed database backup" >> /tmp/app-backup.log
+exit 0

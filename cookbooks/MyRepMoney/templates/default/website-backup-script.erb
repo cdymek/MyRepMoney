@@ -1,0 +1,42 @@
+#!/bin/sh
+echo "$(date): Beginning application backup" >> /tmp/app-backup.log
+
+mkdir /tmp/website
+if [ "$?" -ne "0" ]; then
+  echo "$(date): mkdir /tmp/website failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+cd <%=@web_content_dir %>
+if [ "$?" -ne "0" ]; then
+  echo "$(date): cd <%=@web_content_dir %> failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+zip -r <%= @web_source_filename %> *
+if [ "$?" -ne "0" ]; then
+  echo "$(date): zip -r <%= @web_source_filename %> * failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+
+mv <%=@web_source_filename %> /tmp/website
+if [ "$?" -ne "0" ]; then
+  echo "$(date): mv <%=@web_source_filename %> /tmp/website failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+s3cmd put  /tmp/website/<%= @web_source_filename %> <%= @s3_source_url %>/<%= @web_source_filename %>
+if [ "$?" -ne "0" ]; then
+  echo "$(date): s3cmd put  /tmp/website/<%= @web_source_filename %> <%= @s3_source_url %>/<%= @web_source_filename %> failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+rm -rf /tmp/website
+if [ "$?" -ne "0" ]; then
+  echo "$(date): rm -rf /tmp/website failed" >> /tmp/app-backup.log
+  exit 1
+fi
+
+echo "$(date): Completed application backup" >> /tmp/app-backup.log
+exit 0
