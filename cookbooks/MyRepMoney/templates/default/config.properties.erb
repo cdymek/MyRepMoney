@@ -1,0 +1,21 @@
+#Properties File
+dataloader.localdir=<%= @dataloader_localdir %>
+dataloader.workingdir=<%= @dataloader_workingdir %>
+dataloader.threadcount=<%= @dataloader_threadcount %>
+dataloader.sleeptime=<%= @dataloader_sleeptime %>
+dataloader.monitor_dir=<%= @dataloader_monitor_dir %>
+
+jcs.sleeptime=<%= @jcs_sleeptime %>
+jcs.monitor_dir=<%= @jcs_monitor_dir %>
+
+SourceDataSet.delimiter=^
+
+database.userid=<%= @db_username %>
+database.password=g<%= @db_password %>
+database.jdbcdriver=
+database.url=jdbc:mysql://1<%= @db_address %>:<%= @db_port %>/<%= @db_name %>
+
+AWS_SQS_Queue=<%= @aws_sqs_queue %>
+AWS_Region=<%= @aws_region %>
+AWS_SQS_Message_Delay=1
+AWS_SQS_Url=<%= @aws_sqs_url %>
