@@ -1,19 +1,27 @@
 #Properties File
+server.type=<%= @server_type %>
+
+#Data Loader Properties
 dataloader.localdir=<%= @dataloader_localdir %>
 dataloader.workingdir=<%= @dataloader_workingdir %>
 dataloader.threadcount=<%= @dataloader_threadcount %>
 dataloader.sleeptime=<%= @dataloader_sleeptime %>
 dataloader.monitor_dir=<%= @dataloader_monitor_dir %>
+dataloader.threadclass=com.MyRepMoney.processor.MyRepMoneyDataLoadProcessorTask
 
+#JCS Properties
 jcs.sleeptime=<%= @jcs_sleeptime %>
 jcs.monitor_dir=<%= @jcs_monitor_dir %>
+jcs.threadcount=1
+jcs.threadclass=com.MyRepMoney.processor.MyRepMoneyControlProcessorTask
+
 
 SourceDataSet.delimiter=^
 
 database.userid=<%= @db_username %>
-database.password=g<%= @db_password %>
+database.password=<%= @db_password %>
 database.jdbcdriver=
-database.url=jdbc:mysql://1<%= @db_address %>:<%= @db_port %>/<%= @db_name %>
+database.url=jdbc:mysql://<%= @db_host %>:<%= @db_port %>/<%= @db_name %>
 
 AWS_SQS_Queue=<%= @aws_sqs_queue %>
 AWS_Region=<%= @aws_region %>

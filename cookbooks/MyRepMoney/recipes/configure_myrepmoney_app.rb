@@ -1,16 +1,14 @@
 #Check to see which type of server this is
 #jcs = control server
 #dataloader = data loader server
-log "Configuring application of type " << node["server"]["type"]
+log "Configuring application of type #{node["myrepmoney"]["server_type"]}"
 server_dir = ""
-app_package = ""
-if node["server"]["type"] == ("DataLoader")
-	server_dir = node["dataloader"]["app_dir"]
-	app_package = node["dataloader"]["app-package"]
-end
-elsif node["server"]["type"] == ("JCS")
-	server_dir = node["jcs"]["app_dir"]
-	app_package = node["jcs"]["app-package"]
+if node["myrepmoney"]["server_type"] == ("dataloader")
+	server_dir = node["dataloader"]["app_dir"],
+	monitor_dir = node["dataloader"]["monitor_dir"]
+elsif node["myrepmoney"]["server_type"] == ("jcs")
+	server_dir = node["jcs"]["app_dir"],
+	monitor_dir = node["jcs"]["monitor_dir"]
 else
 	log "Undefined server type provided"
 end
@@ -25,24 +23,11 @@ if server_dir != ("")
   		recursive true
   		action :create
 	end
-	log "Directory " << server_dir << " created"
+	log "Directory #{server_dir} created"
 
-	#Set up the script to download the java app & extract the contents
-	app_setup_script = server_dir << "/app-setup-script"
-	template app_setup_script do
-		source "app-setup-script.erb"
-		mode 0755
-		variables(
-			:web_content_dir => node["website"]["web_dir"],
-			:s3_source_url => node["website"]["s3_url"],
-			:web_source_filename => node["website"]["source_zip"]
-		)
-	end
-	log "App Setup Script " << app_setup_script " execution complete"
 
 	#Set up the configuration files (aws.credentials, log4j.xml, config.properties)
-	aws_cred_file = server_dir << "/AwsCredentials.properties"
-	template aws_cred_file do
+	template "#{server_dir}/AwsCredentials.properties" do
 		source "AwsCredentials.properties.erb"
 		mode 0644
 		variables(
@@ -51,14 +36,14 @@ if server_dir != ("")
 		)
 	end
 
-	config_file = server_dir << "/config.properties"
-	template config_file do
+	template "#{server_dir}/config.properties" do
 		source "config.properties.erb"
 		mode 0644
 		variables(
+			:server_type => node["myrepmoney"]["server_type"],
 			:dataloader_localdir => node["dataloader"]["localdir"],
 			:dataloader_workingdir => node["dataloader"]["workingdir"],
-			:ataloader_threadcount => node["dataloader"]["threadcount"],
+			:dataloader_threadcount => node["dataloader"]["threadcount"],
 			:dataloader_sleeptime => node["dataloader"]["sleeptime"],
 			:dataloader_monitor_dir => node["dataloader"]["monitor_dir"],
 			:jcs_sleeptime => node["jcs"]["sleeptime"],
@@ -68,23 +53,51 @@ if server_dir != ("")
 			:db_password => node["mysql"]["db_password"],
 			:db_host => node["mysql"]["db_host"],
 			:db_port => node["mysql"]["db_port"],
-			:aws_sqs_queue => node["aws"]["sqs_name"],
+			:aws_sqs_queue => node["aws"]["sqs_queue"],
 			:aws_region => node["aws"]["region"],
 			:aws_sqs_url => node["aws"]["sqs_url"]
 		)
 	end	
 
-	log4j_file = server_dir << "/log4j2-test.xml"
-	template config_file do
+	template "#{server_dir}/log4j2-test.xml" do
 		source "log4j2-test.xml.erb"
 		mode 0644
 		variables(
-			:java_log_dir => node["java"]["log_dir"]
+			:java_log_dir => node["java"]["log_dir"],
+			:server_type => node["server"]["type"]
 		)
 	end	
 	log "Properties files created"
 
-	#Configure the app to execute
+	#Set up the script to download the java app & extract the contents
+	template "#{server_dir}/app-setup-script" do
+		source "app-setup-script.erb"
+		mode 0755
+		variables(
+			:server_dir => server_dir,
+			:s3_source_url => node["website"]["s3_url"],
+			:app_package => node["myrepmoney"]["app_package"],
+			:jar_file => node["myrepmoney"]["jar_file"]
+		)
+	end
 
+	#Execute setup script
+	execute "app-setup-script" do
+	  user "root"
+	  cwd  "#{server_dir}"
+	  command "#{server_dir}/app-setup-script"
+	end
+	log "App Setup Script #{server_dir}/app-setup-script execution complete"
+
+	#Configure the app to execute
+	template "#{server_dir}/java-app.sh" do
+		source "java-app.sh.erb"
+		mode 0755
+		variables(
+			:server_dir => server_dir,
+			:monitor_dir => monitor_dir,
+			:jar_file => node["myrepmoney"]["jar_file"]
+		)
+	end
 
 end 

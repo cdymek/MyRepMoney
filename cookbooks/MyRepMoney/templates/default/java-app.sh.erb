@@ -1,0 +1,98 @@
+#!/bin/bash
+
+if [ "$1" != "stop" ] && [ "$1" != "start" ] && [ "$1" != "restart" ]; then
+  echo "$(date): command $1 is invalid" >> /tmp/app-run.log
+  echo "$(date): command $1 is invalid"
+  exit 1    
+fi
+
+echo "$(date): $1ing java application"
+echo "$(date): $1ing java application" >> /tmp/app-run.log
+
+#Do this if the user said to stop or restart the java application
+if [ "$1" = "stop" ] || [ "$1" = "restart" ]; then
+
+  cd <%= @monitor_dir %>
+  if [ "$?" -ne "0" ]; then
+    mkdir <%= @monitor_dir %>
+    if [ "$?" -ne "0" ]; then
+      echo "$(date): mkdir <%= @monitor_dir %> failed" >> /tmp/app-run.log
+      echo "$(date): mkdir <%= @monitor_dir %> failed"
+      exit 1    
+    fi
+    cd <%= @monitor_dir %>
+    if [ "$?" -ne "0" ]; then
+      echo "$(date): cd <%= @monitor_dir %> failed" >> /tmp/app-run.log
+      echo "$(date): cd <%= @monitor_dir %> failed"
+      exit 1    
+    fi
+  fi
+
+  touch <%= @monitor_dir %>/kill.txt
+  if [ "$?" -ne "0" ]; then
+    echo "$(date): touch <%= @monitor_dir %>/kill.txt failed" >> /tmp/app-run.log
+    echo "$(date): touch <%= @monitor_dir %>/kill.txt failed"
+    exit 1
+  fi
+
+  while [ ! -f <%= @monitor_dir %>/done.txt ]
+  do
+    sleep 2
+  done
+
+  rm -f <%= @monitor_dir %>*
+  if [ "$?" -ne "0" ]; then
+    echo "$(date): rm -f <%= @monitor_dir %>/* failed" >> /tmp/app-run.log
+    echo "$(date): rm -f <%= @monitor_dir %>/* failed"
+    exit 1
+  fi
+  echo "$(date): Java app stopped." >> /tmp/app-run.log
+  echo "$(date): Java app stopped."
+fi
+
+
+#Do this if the user said to start or restart the java application
+if [ "$1" = "start" ] || [ "$1" = "restart" ]; then
+
+  cd <%= @monitor_dir %>
+  if [ "$?" -ne "0" ]; then
+    mkdir <%= @monitor_dir %>
+    if [ "$?" -ne "0" ]; then
+      echo "$(date): mkdir <%= @monitor_dir %> failed" >> /tmp/app-run.log
+      echo "$(date): mkdir <%= @monitor_dir %> failed"
+      exit 1    
+    fi
+    cd <%= @monitor_dir %>
+    if [ "$?" -ne "0" ]; then
+      echo "$(date): cd <%= @monitor_dir %> failed" >> /tmp/app-run.log
+      echo "$(date): cd <%= @monitor_dir %> failed"
+      exit 1    
+    fi
+  fi
+
+  rm -f <%= @monitor_dir %>*
+  if [ "$?" -ne "0" ]; then
+    echo "$(date): rm -f <%= @monitor_dir %>/* failed" >> /tmp/app-run.log
+    echo "$(date): rm -f <%= @monitor_dir %>/* failed"
+    exit 1
+  fi
+
+  cd <%= @server_dir %>
+  if [ "$?" -ne "0" ]; then
+    echo "$(date): cd <%= @monitor_dir %> failed" >> /tmp/app-run.log
+    echo "$(date): cd <%= @monitor_dir %> failed"
+    exit 1    
+  fi  
+
+  java -jar <%= @jar_file %>
+  if [ "$?" -ne "0" ]; then
+    echo "$(date): java -jar <%= @jar_file %>" >> /tmp/app-run.log
+    echo "$(date): java -jar <%= @jar_file %>"
+    exit 1    
+  fi
+  echo "$(date): Java app started."  >> /tmp/app-run.log
+  echo "$(date): Java app started."  
+fi
+
+exit 0
+

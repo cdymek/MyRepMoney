@@ -2,31 +2,37 @@ echo "$(date): Beginning java application setup" >> /tmp/app-setup.log
 
 cd <%= @server_dir %>
 if [ "$?" -ne "0" ]; then
-  echo "$(date): cd <%= @server_dir %> failed" >> /tmp/app-backup.log
+  echo "$(date): cd <%= @server_dir %> failed" >> /tmp/app-setup.log
   exit 1
 fi
 
-s3cmd get <%= @s3_source_url %>/<%= @app_package %>
+s3cmd get <%= @s3_source_url %>/<%= @app_package %> --force
 if [ "$?" -ne "0" ]; then
-  echo "$(date): s3cmd get <%= @s3_source_url %>/<%= @app_package %> failed" >> /tmp/app-backup.log
+  echo "$(date): s3cmd get <%= @s3_source_url %>/<%= @app_package %> failed" >> /tmp/app-setup.log
   exit 1
 fi
 
-unzip -oq <%= @wapp_package %>
+unzip -oq <%= @app_package %>
 if [ "$?" -ne "0" ]; then
-  echo "$(date): unzip -oq <%= @app_package %> failed" >> /tmp/app-backup.log
+  echo "$(date): unzip -oq <%= @app_package %> failed" >> /tmp/app-setup.log
   exit 1
 fi
 
 #chown -R www-data:www-data <%= @server_dir %>
 #if [ "$?" -ne "0" ]; then
-#  echo "$(date): chown -R www-data:www-data <%= @server_dir %> failed" >> /tmp/app-backup.log
+#  echo "$(date): chown -R www-data:www-data <%= @server_dir %> failed" >> /tmp/app-setup.log
 #  exit 1
 #fi
 
+zip -u <%= @jar_file %> AwsCredentials.properties config.properties log4j2-test.xml 
+if [ "$?" -ne "0" ]; then
+  echo "$(date): zip -u <%= @jar_file %> AwsCredentials.properties config.properties log4j2-test.xml failed" >> /tmp/app-setup.log
+  exit 1
+fi
+
 rm -f <%= @app_package %>
 if [ "$?" -ne "0" ]; then
-  echo "$(date): rm -f <%= @wapp_package %> failed" >> /tmp/app-backup.log
+  echo "$(date): rm -f <%= @wapp_package %> failed" >> /tmp/app-setup.log
   exit 1
 fi
 
