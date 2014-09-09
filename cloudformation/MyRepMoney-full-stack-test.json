@@ -1,0 +1,463 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters": {
+    "NATInstanceType": {
+      "Description": "NAT Device EC2 instance type",
+      "Type": "String",
+      "Default": "t1.micro",
+      "AllowedValues": [
+        "t1.micro",
+        "m1.small",
+        "m1.medium",
+        "m1.large",
+        "m1.xlarge",
+        "m2.xlarge",
+        "m2.2xlarge",
+        "m2.4xlarge",
+        "c1.medium",
+        "c1.xlarge",
+        "cc1.4xlarge",
+        "cc2.8xlarge",
+        "cg1.4xlarge"
+      ],
+      "ConstraintDescription": "must be a valid EC2 instance type."
+    },
+    "AZPrimary": {
+      "Description": "The primary availability zone",
+      "Type": "String",
+      "Default": "us-east-1b",
+      "AllowedValues": [
+        "us-east-1b",
+        "us-east-1c",
+        "us-east-1d"
+      ],
+      "ConstraintDescription": "must be a valid availability zone."
+    },
+    "AZAlternate": {
+      "Description": "The alternate availability zone",
+      "Type": "String",
+      "Default": "us-east-1c",
+      "AllowedValues": [
+        "us-east-1b",
+        "us-east-1c",
+        "us-east-1d"
+      ],
+      "ConstraintDescription": "must be a valid availability zone."
+    },
+    "Env": {
+      "Description": "Environment",
+      "Type": "String",
+      "Default": "Dev",
+      "ConstraintDescription": "must be a valid string."
+    },
+    "VPCName": {
+      "Description": "Name of the VPC",
+      "Type": "String",
+      "Default": "VPC-MyRepMoney-Test",
+      "ConstraintDescription": "must be a valid string."
+    },
+    "VPCCIDR": {
+      "Description": "Address range of CIDR",
+      "Type": "String",
+      "Default": "10.0.0.0/16",
+      "ConstraintDescription": "Must be a valid address range (e.g. 10.0.0.0/16)"
+    },
+    "PublicCIDR": {
+      "Description": "Address range of CIDR",
+      "Type": "String",
+      "Default": "10.0.1.0/24",
+      "ConstraintDescription": "Must be a valid address range (e.g. 10.0.0.0/16)"
+    },
+    "PrivateCIDR1": {
+      "Description": "Address range of CIDR",
+      "Type": "String",
+      "Default": "10.0.2.0/24",
+      "ConstraintDescription": "Must be a valid address range (e.g. 10.0.0.0/16)"
+    },
+    "PrivateCIDR2": {
+      "Description": "Address range of CIDR",
+      "Type": "String",
+      "Default": "10.0.3.0/24",
+      "ConstraintDescription": "Must be a valid address range (e.g. 10.0.0.0/16)"
+    },
+    "KeyName": {
+      "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instances",
+      "Type": "String",
+      "Default": "cdymekcom"
+    },
+    "OperatorEmail": {
+      "Description": "Email address to notify if there are any scaling operations",
+      "Type": "String",
+      "Default": "aws@cdymek.com"
+    },
+    "DataLoaderInstanceType": {
+      "Description": "Job Control Server EC2 instance type",
+      "Type": "String",
+      "Default": "t2.micro",
+      "AllowedValues": [
+        "t2.micro",
+        "t2.small",
+        "t2.medium",
+        "m3.medium",
+        "m3.large",
+        "m3.xlarge",
+        "m3.2xlarge",
+        "c3.xlarge",
+        "c3.2xlarge",
+        "c3.4xlarge",
+        "c3.8xlarge",
+        "g2.2xlarge",
+        "r3.large",
+        "r3.xlarge",
+        "r3.2xlarge",
+        "r3.4xlarge",
+        "r3.8xlarge",
+        "i2.xlarge",
+        "i2.2xlarge",
+        "i2.4xlarge",
+        "i2.8xlarge",                    
+        "hs1.8xlarge"
+      ],
+      "ConstraintDescription": "must be a valid EC2 instance type."   
+    }, 
+    "JCSInstanceType": {
+      "Description": "Job Control Server EC2 instance type",
+      "Type": "String",
+      "Default": "t2.micro",
+      "AllowedValues": [
+        "t2.micro",
+        "t2.small",
+        "t2.medium",
+        "m3.medium",
+        "m3.large",
+        "m3.xlarge",
+        "m3.2xlarge",
+        "c3.xlarge",
+        "c3.2xlarge",
+        "c3.4xlarge",
+        "c3.8xlarge",
+        "g2.2xlarge",
+        "r3.large",
+        "r3.xlarge",
+        "r3.2xlarge",
+        "r3.4xlarge",
+        "r3.8xlarge",
+        "i2.xlarge",
+        "i2.2xlarge",
+        "i2.4xlarge",
+        "i2.8xlarge",                    
+        "hs1.8xlarge"
+      ],
+      "ConstraintDescription": "must be a valid EC2 instance type."
+    },
+    "BucketName": {
+      "Description": " The name of the s3 bucket that contains the configuration information ",
+      "Type": "String",
+      "MinLength": "0",
+      "MaxLength": "100",
+      "Default": "cdymekbackup",
+      "ConstraintDescription": "must be a valid subnet id"
+    },
+    "DBClass": {
+      "Default": "db.t2.micro",
+      "Description": "Database instance class",
+      "Type": "String",
+      "AllowedValues": [
+        "db.t2.micro",
+        "db.m1.small",
+        "db.m1.large",
+        "db.m1.xlarge",
+        "db.m2.xlarge",
+        "db.m2.2xlarge",
+        "db.m2.4xlarge"
+      ],
+      "ConstraintDescription": "must select a valid database instance type."
+    },
+    "DBName": {
+      "Default": "MyRepMoney",
+      "Description": "The database name",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "64",
+      "AllowedPattern": "[a-zA-Z][a-zA-Z0-9]*",
+      "ConstraintDescription": "must begin with a letter and contain only alphanumeric characters."
+    },
+    "DBUsername": {
+      "Default": "root",
+      "Description": "The WordPress database admin account username",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "16",
+      "AllowedPattern": "[a-zA-Z][a-zA-Z0-9]*",
+      "ConstraintDescription": "must begin with a letter and contain only alphanumeric characters."
+    },
+    "DBPassword": {
+      "Default": "genS1tTjOIP0FR",
+      "NoEcho": "true",
+      "Description": "The WordPress database admin account password",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "41",
+      "AllowedPattern": "[a-zA-Z0-9]*",
+      "ConstraintDescription": "must contain only alphanumeric characters."
+    },
+    "DBAllocatedStorage": {
+      "Default": "5",
+      "Description": "The size of the database (Gb)",
+      "Type": "Number",
+      "MinValue": "5",
+      "MaxValue": "1024",
+      "ConstraintDescription": "must be between 5 and 1024Gb."
+    },
+    "DBFile": {
+      "Default": "MyRepMoney-Test.sql",
+      "Description": "Name of the database SQL file to load / backup in S3.",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "41",
+      "ConstraintDescription": "must contain only alphanumeric characters."
+    },
+    "DBFileLoad": {
+      "Default": "Y",
+      "Description": "Flag to indicate whether to load the DBFile specified. Y=Yes, any other value=N",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "1",
+      "ConstraintDescription": "must contain only alphanumeric characters."
+    },
+    "RecipeURL": {
+      "Default": "https://s3.amazonaws.com/cdymekbackup/MyRepMoney/chef.tar.gz",
+      "Description": "Name of the recipe archive file to load.  Leave blank for no content to be loaded. ",
+      "Type": "String",
+      "MinLength": "0",
+      "MaxLength": "500",
+      "ConstraintDescription": "must contain only alphanumeric characters."
+    },
+    "SQSQueueName": {
+      "Default": "MyRepMoneyJCSQueue-Test",
+      "Description": "Name of the SQS Queue. ",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "50",
+      "ConstraintDescription": "must contain only alphanumeric characters."
+    },
+    "DNSHostedZone": {
+      "Description": "The name of the hosted zone in Route53 that the DNS entries will belong to.",
+      "Type": "String",
+      "MinLength": "0",
+      "MaxLength": "25",
+      "Default": "Z2WJ34K0USS5CR"
+    },
+    "DNSDomainList" : {
+      "Description": "The list of domain names to be updated in Route 53, separated by commas.",
+      "Type": "String",
+      "MinLength": "0",
+      "MaxLength": "250",
+      "Default": ""
+    },
+    "SSHLocation": {
+      "Description": " The IP address range that can be used to SSH to the EC2 instances",
+      "Type": "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default": "0.0.0.0/0",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+    }
+  },
+  "Resources": {
+    "MyRepMoneyVpcStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/cdymekbackup/MyRepMoney/vpc-1-public-2-private-subnets.json",
+        "Parameters": {
+          "AZPrimary": {
+            "Ref": "AZPrimary"
+          },
+          "AZAlternate": {
+            "Ref": "AZAlternate"
+          },
+          "Env": {
+            "Ref": "Env"
+          },
+          "VPCName": {
+            "Ref": "VPCName"
+          },
+          "VPCCIDR": {
+            "Ref": "VPCCIDR"
+          },
+          "PublicCIDR": {
+            "Ref": "PublicCIDR"
+          },
+          "PrivateCIDR1": {
+            "Ref": "PrivateCIDR1"
+          },
+          "PrivateCIDR2": {
+            "Ref": "PrivateCIDR2"
+          }
+        }
+      }
+    },
+    "MyRepMoneyAppStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "https://s3.amazonaws.com/cdymekbackup/MyRepMoney/MyRepMoney-app-stack-requires-vpc.json",
+        "Parameters": {
+          "VPCId": {
+            "Fn::GetAtt": [
+              "MyRepMoneyVpcStack",
+              "Outputs.VPC"
+            ]
+          },
+          "PublicSubnet": {
+            "Fn::GetAtt": [
+              "MyRepMoneyVpcStack",
+              "Outputs.PublicSubnet"
+            ]
+          },
+          "SubnetId1": {
+            "Fn::GetAtt": [
+              "MyRepMoneyVpcStack",
+              "Outputs.PrivateSubnet1"
+            ]
+          },
+          "SubnetId2": {
+            "Fn::GetAtt": [
+              "MyRepMoneyVpcStack",
+              "Outputs.PrivateSubnet2"
+            ]
+          },
+          "SubnetAZList": {
+            "Fn::Join": [",", [ { "Ref": "AZPrimary" }, { "Ref": "AZAlternate" } ] ] 
+          },
+          "KeyName": {
+            "Ref": "KeyName"
+          },          
+          "OperatorEmail": {
+            "Ref": "OperatorEmail"
+          },
+          "DataLoaderInstanceType": {
+            "Ref": "DataLoaderInstanceType"
+          },
+          "JCSInstanceType": {
+            "Ref": "JCSInstanceType"
+          },
+          "BucketName": {
+            "Ref": "BucketName"
+          },
+          "DBClass": {
+            "Ref": "DBClass"
+          },
+          "DBName": {
+            "Ref": "DBName"
+          },
+          "DBUsername": {
+            "Ref": "DBUsername"
+          },
+          "DBPassword": {
+            "Ref": "DBPassword"
+          },
+          "DBAllocatedStorage": {
+            "Ref": "DBAllocatedStorage"
+          },
+          "DBFile": {
+            "Ref": "DBFile"
+          },
+          "DBFileLoad": {
+            "Ref": "DBFileLoad"
+          },
+          "RecipeURL": {
+            "Ref": "RecipeURL"
+          },
+          "SQSQueueName": {
+            "Ref": "SQSQueueName"
+          },          
+          "DNSHostedZone": {
+            "Ref": "DNSHostedZone"
+          },
+          "DNSDomainList": {
+            "Ref": "DNSDomainList"
+          },
+          "SSHLocation": {
+            "Ref": "SSHLocation"
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "VpcStack": {
+      "Value": {
+        "Ref": "MyRepMoneyVpcStack"
+      }
+    },
+    "WebStack": {
+      "Value": {
+        "Ref": "MyRepMoneyAppStack"
+      }
+    },
+    "VPC": {
+      "Description": "VPC",
+      "Value": {
+        "Fn::GetAtt": [
+          "MyRepMoneyVpcStack",
+          "Outputs.VPC"
+        ]
+      }
+    },
+    "PublicSubnet": {
+      "Description": "Public Subnet",
+      "Value": {
+        "Fn::GetAtt": [
+          "MyRepMoneyVpcStack",
+          "Outputs.PublicSubnet"
+        ]
+      }
+    },
+    "PrivateSubnet1": {
+      "Description": "Private Subnet",
+      "Value": {
+        "Fn::GetAtt": [
+          "MyRepMoneyVpcStack",
+          "Outputs.PrivateSubnet1"
+        ]
+      }
+    },    
+    "PrivateSubnet2": {
+      "Description": "Private Subnet",
+      "Value": {
+        "Fn::GetAtt": [
+          "MyRepMoneyVpcStack",
+          "Outputs.PrivateSubnet2"
+        ]
+      }
+    },
+    "JobControlServer": {
+      "Description": "Job Control Server IP Address",
+      "Value": {
+        "Fn::GetAtt": [
+          "MyRepMoneyAppStack",
+          "Outputs.JobControlServer"
+        ]
+      }
+    },
+    "JDBCConnectionString": {
+      "Description": "JDBC connection string for database",
+      "Value": {
+        "Fn::GetAtt": [
+          "MyRepMoneyAppStack",
+          "Outputs.JDBCConnectionString"
+        ]
+      }
+    },
+    "JCSQueueUrl": {
+      "Description": "Url of JCS SQS Queue",
+      "Value": {
+        "Fn::GetAtt": [
+          "MyRepMoneyAppStack",
+          "Outputs.JCSQueueUrl"
+        ]
+      }
+    }        
+  }
+}
