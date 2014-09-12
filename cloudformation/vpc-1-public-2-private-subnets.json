@@ -406,13 +406,30 @@
         }
       }
     },
-    "InboundEmphemeralPublicNetworkAclEntry": {
+    "InboundFTPPublicNetworkAclEntry": {
       "Type": "AWS::EC2::NetworkAclEntry",
       "Properties": {
         "NetworkAclId": {
           "Ref": "PublicNetworkAcl"
         },
         "RuleNumber": "103",
+        "Protocol": "6",
+        "RuleAction": "allow",
+        "Egress": "false",
+        "CidrBlock": "0.0.0.0/0",
+        "PortRange": {
+          "From": "20",
+          "To": "21"
+        }
+      }
+    },    
+    "InboundEmphemeralPublicNetworkAclEntry": {
+      "Type": "AWS::EC2::NetworkAclEntry",
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        },
+        "RuleNumber": "140",
         "Protocol": "6",
         "RuleAction": "allow",
         "Egress": "false",
@@ -875,6 +892,12 @@
             "FromPort": "20",
             "ToPort": "22",
             "CidrIp": { "Ref": "VPCCIDR" }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "1024",
+            "ToPort": "65535",
+            "CidrIp": { "Ref": "VPCCIDR" }
           }
         ],
         "SecurityGroupEgress": [
@@ -900,6 +923,12 @@
             "IpProtocol": "tcp",
             "FromPort": "20",
             "ToPort": "21",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "1024",
+            "ToPort": "65535",
             "CidrIp": "0.0.0.0/0"
           }
         ]
@@ -929,6 +958,28 @@
       "Description": "Private Subnet2",
       "Value": {
         "Ref": "PrivateSubnet2"
+      }
+    },
+    "PublicSubnetAZ": {
+      "Description": "The AZ of the public subnet.",
+      "Value": {
+        "Ref": "AZPrimary"
+      }
+    },
+    "AZList": {
+      "Description": "The list of AZs used in this script", 
+      "Value": {
+        "Fn::Join": [
+          ",",
+          [
+            {
+              "Ref": "AZPrimary"
+            },
+            {
+              "Ref": "AZAlternate"
+            }
+          ]
+        ]        
       }
     }
   }

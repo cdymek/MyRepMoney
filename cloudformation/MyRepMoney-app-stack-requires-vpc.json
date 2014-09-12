@@ -77,37 +77,39 @@
       "Type": "String",
       "MinLength": "0",
       "MaxLength": "25",
-      "Default": "vpc-a241efc7",
       "ConstraintDescription": "must be a valid VPC id"
     },
     "PublicSubnet": {
-      "Description": " The id of the subnet that will host the EC2 server",
+      "Description": " The id of the subnet that will host the publically accessible EC2 server running the JCS",
       "Type": "String",
       "MinLength": "0",
       "MaxLength": "25",
-      "Default": "subnet-9de0e8b5",
+      "ConstraintDescription": "must be a valid subnet id"
+    },
+   "PublicSubnetAZ": {
+      "Description": " The AZ of the subnet that will host the publically accessible EC2 server running the JCS",
+      "Type": "String",
+      "MinLength": "0",
+      "MaxLength": "25",
       "ConstraintDescription": "must be a valid subnet id"
     },    
     "SubnetId1": {
-      "Description": " The id of the subnet that will host the EC2 server",
+      "Description": " The id of a subnet that may host the database and any DataLoader EC2 server instances",
       "Type": "String",
       "MinLength": "0",
       "MaxLength": "25",
-      "Default": "subnet-9ce0e8b4",
       "ConstraintDescription": "must be a valid subnet id"
     },
     "SubnetId2": {
-      "Description": "The subnet group namne for the database",
+      "Description": " The id of a subnet that may host the database and any DataLoader EC2 server instances",
       "Type": "String",
       "MinLength": "0",
       "MaxLength": "25",
-      "Default": "subnet-9afb35ed",
       "ConstraintDescription": "must be a valid Subnet."
     },
     "SubnetAZList": {
       "Description": "The list of AZs associated with the subnets",
       "Type": "CommaDelimitedList",
-      "Default": "us-east-1b,us-east-1c",
       "ConstraintDescription": "must be a valid Subnet."
     },
     "BucketName": {
@@ -144,7 +146,7 @@
     },
     "DBUsername": {
       "Default": "root",
-      "Description": "The WordPress database admin account username",
+      "Description": "The MySQl database admin account username",
       "Type": "String",
       "MinLength": "1",
       "MaxLength": "16",
@@ -154,7 +156,7 @@
     "DBPassword": {
       "Default": "genS1tTjOIP0FR",
       "NoEcho": "true",
-      "Description": "The WordPress database admin account password",
+      "Description": "The MySQL database admin account password",
       "Type": "String",
       "MinLength": "1",
       "MaxLength": "41",
@@ -170,8 +172,8 @@
       "ConstraintDescription": "must be between 5 and 1024Gb."
     },
     "DBFile": {
-      "Default": "MyRepMoney_db.sql",
-      "Description": "Name of the database SQL file to load / backup in S3.",
+      "Default": "MyRepMoney-Test.sql",
+      "Description": "Name of the database SQL file to load from / backup to in S3.",
       "Type": "String",
       "MinLength": "1",
       "MaxLength": "41",
@@ -180,22 +182,6 @@
     "DBFileLoad": {
       "Default": "Y",
       "Description": "Flag to indicate whether to load the DBFile specified. Y=Yes, any other value=N",
-      "Type": "String",
-      "MinLength": "1",
-      "MaxLength": "1",
-      "ConstraintDescription": "must contain only alphanumeric characters."
-    },
-    "WebFile": {
-      "Default": "website.zip",
-      "Description": "Name of the website archive file to load / backup in S3. ",
-      "Type": "String",
-      "MinLength": "0",
-      "MaxLength": "41",
-      "ConstraintDescription": "must contain only alphanumeric characters."
-    },
-    "WebFileLoad": {
-      "Default": "N",
-      "Description": "Flag to indicate whether to load the website archive file specified. Y=Yes, any other value=N",
       "Type": "String",
       "MinLength": "1",
       "MaxLength": "1",
@@ -211,14 +197,14 @@
     },
     "SQSQueueName": {
       "Default": "MyRepMoneyJCSQueue",
-      "Description": "Name of the SQS Queue. ",
+      "Description": "Name of the SQS Queue used to exchange messages from the JCS server to the DataLoader servers.",
       "Type": "String",
       "MinLength": "1",
       "MaxLength": "50",
       "ConstraintDescription": "must contain only alphanumeric characters."
     },
     "DNSHostedZone": {
-      "Description": "The name of the hosted zone in Route53 that the DNS entries will belong to.",
+      "Description": "The name of the hosted zone in Route53 that any DNS entries will belong to.",
       "Type": "String",
       "MinLength": "0",
       "MaxLength": "25",
@@ -232,7 +218,7 @@
       "Default": ""
     },
     "SSHLocation": {
-      "Description": " The IP address range that can be used to SSH to the EC2 instances",
+      "Description": " The IP address range that can be used to SSH to the publically accessible EC2 instances",
       "Type": "String",
       "MinLength": "9",
       "MaxLength": "18",
@@ -454,19 +440,10 @@
       }
     },
 
-    "MyEIP": {
-      "Type": "AWS::EC2::EIP",
-      "Properties": {
-        "InstanceId": {
-          "Ref": "JCSServer"
-        },
-        "Domain": "vpc"
-      }
-    },
-    "JCSServer": {
-      "Type": "AWS::EC2::Instance",
+    "JCSServerLaunchConfiguration" : {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
       "DependsOn": "BucketPolicy",
-      "Metadata": {
+      "Metadata" : {
         "AWS::CloudFormation::Init": {
           "config": {
             "packages": {
@@ -533,12 +510,8 @@
                     }
                   },
                   "website": {
-                    "source_zip": {
-                      "Ref": "WebFile"
-                    },
-                    "load_source_zip": {
-                      "Ref": "WebFileLoad"
-                    }
+                    "source_zip": "",
+                    "load_source_zip": "N"
                   },
                   "aws": {
                     "log_group_name": {
@@ -594,12 +567,12 @@
                     [
                       "[cfn-auto-reloader-hook]\n",
                       "triggers=post.update\n",
-                      "path=Resources.WebServerHost.Metadata.AWS::CloudFormation::Init\n",
+                      "path=Resources.JCSServerLaunchConfiguration.Metadata.AWS::CloudFormation::Init\n",
                       "action=/opt/aws/bin/cfn-init -s ",
                       {
                         "Ref": "AWS::StackId"
                       },
-                      " -r WebServerHost ",
+                      " -r JCSServerLaunchConfiguration ",
                       " --region     ",
                       {
                         "Ref": "AWS::Region"
@@ -634,6 +607,7 @@
         }
       },
       "Properties": {
+        "AssociatePublicIpAddress": "true",
         "ImageId": {
           "Fn::FindInMap": [
             "AWSRegionArch2AMI",
@@ -654,7 +628,7 @@
         "InstanceType": {
           "Ref": "JCSInstanceType"
         },
-        "SecurityGroupIds": [
+        "SecurityGroups": [
           {
             "Ref": "EC2ServerSecurityGroup"
           }
@@ -665,15 +639,6 @@
         "KeyName": {
           "Ref": "KeyName"
         },
-        "SubnetId": {
-          "Ref": "PublicSubnet"
-        },
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "Job Control Server"
-          }
-        ],
         "UserData": {
           "Fn::Base64": {
             "Fn::Join": [
@@ -696,7 +661,7 @@
                 {
                   "Ref": "AWS::StackName"
                 },
-                " -r JCSServer ",
+                " -r JCSServerLaunchConfiguration ",
                 " --access-key ",
                 {
                   "Ref": "HostKeys"
@@ -730,13 +695,29 @@
         }
       }
     },
+    "JCSServerAutoScalingGroup": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Version": "2009-05-15",
+      "Properties": {
+        "AvailabilityZones": [{ "Ref" : "PublicSubnetAZ" }],
+        "LaunchConfigurationName": { "Ref": "JCSServerLaunchConfiguration" },
+        "MinSize": "1",
+        "MaxSize": "1",
+        "Tags" : [{
+          "Key"   : "Name",
+          "Value" : { "Fn::Join"  : [ "-" , [ { "Ref" : "AWS::StackName" }, "JCS" ]]},
+          "PropagateAtLaunch" : "true"
+        }],
+        "VPCZoneIdentifier" : [{ "Ref" : "PublicSubnet" }]
+      }
+    },
 
     "WaitHandle": {
       "Type": "AWS::CloudFormation::WaitConditionHandle"
     },
     "WaitCondition": {
       "Type": "AWS::CloudFormation::WaitCondition",
-      "DependsOn": [ "JCSServer", "DataLoaderServerAutoScalingGroup" ],
+      "DependsOn": [ "JCSServerAutoScalingGroup", "DataLoaderServerAutoScalingGroup" ],
       "Properties": {
         "Handle": {
           "Ref": "WaitHandle"
@@ -807,20 +788,12 @@
                     "db_password": {
                       "Ref": "DBPassword"
                     },
-                    "sql_file": {
-                      "Ref": "DBFile"
-                    },
-                    "load_sql_file": {
-                      "Ref": "DBFileLoad"
-                    }
+                    "sql_file": "",
+                    "load_sql_file": "N"
                   },
                   "website": {
-                    "source_zip": {
-                      "Ref": "WebFile"
-                    },
-                    "load_source_zip": {
-                      "Ref": "WebFileLoad"
-                    }
+                    "source_zip": "",
+                    "load_source_zip": "N"
                   },
                   "aws": {
                     "log_group_name": {
@@ -876,12 +849,12 @@
                     [
                       "[cfn-auto-reloader-hook]\n",
                       "triggers=post.update\n",
-                      "path=Resources.WebServerHost.Metadata.AWS::CloudFormation::Init\n",
+                      "path=Resources.DataLoaderServerLaunchConfiguration.Metadata.AWS::CloudFormation::Init\n",
                       "action=/opt/aws/bin/cfn-init -s ",
                       {
                         "Ref": "AWS::StackId"
                       },
-                      " -r WebServerHost ",
+                      " -r DataLoaderServerLaunchConfiguration ",
                       " --region     ",
                       {
                         "Ref": "AWS::Region"
@@ -893,6 +866,25 @@
                 }
               }
             }
+          }
+        },
+        "AWS::CloudFormation::Authentication": {
+          "S3AccessCreds": {
+            "type": "S3",
+            "accessKeyId": {
+              "Ref": "HostKeys"
+            },
+            "secretKey": {
+              "Fn::GetAtt": [
+                "HostKeys",
+                "SecretAccessKey"
+              ]
+            },
+            "buckets": [
+              {
+                "Ref": "BucketName"
+              }
+            ]
           }
         }
       },
@@ -953,7 +945,7 @@
                 {
                   "Ref": "AWS::StackName"
                 },
-                " -r DataLoaderServer ",
+                " -r DataLoaderServerLaunchConfiguration ",
                 " --access-key ",
                 {
                   "Ref": "HostKeys"
@@ -1096,7 +1088,7 @@
         "VpcId": {
           "Ref": "VPCId"
         },
-        "GroupDescription": "Enable SSH and MySQL access",
+        "GroupDescription": "Enable SSH and MySQL access from EC2 to RDS",
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
@@ -1196,9 +1188,9 @@
         ],
         "Dimensions": [
           {
-            "Name": "InstanceId",
+            "Name": "AutoScalingGroupName",
             "Value": {
-              "Ref": "JCSServer"
+              "Ref": "JCSServerAutoScalingGroup"
             }
           }
         ]
@@ -1269,12 +1261,6 @@
     }
   },
   "Outputs": {
-    "JobControlServer": {
-      "Value": {
-        "Ref": "MyEIP"
-      },
-      "Description": "Job Control Server IP Address"
-    },
     "JDBCConnectionString": {
       "Description" : "JDBC connection string for database",
       "Value" : { "Fn::Join": [ "", [ "jdbc:mysql://",

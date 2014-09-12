@@ -315,6 +315,9 @@
               "Outputs.PublicSubnet"
             ]
           },
+          "PublicSubnetAZ": { 
+            "Ref": "AZPrimary"
+          },
           "SubnetId1": {
             "Fn::GetAtt": [
               "MyRepMoneyVpcStack",
@@ -429,15 +432,6 @@
         "Fn::GetAtt": [
           "MyRepMoneyVpcStack",
           "Outputs.PrivateSubnet2"
-        ]
-      }
-    },
-    "JobControlServer": {
-      "Description": "Job Control Server IP Address",
-      "Value": {
-        "Fn::GetAtt": [
-          "MyRepMoneyAppStack",
-          "Outputs.JobControlServer"
         ]
       }
     },
