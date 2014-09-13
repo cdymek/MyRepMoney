@@ -1,34 +1,34 @@
-echo "$(date): Beginning web application setup" >> /tmp/app-setup.log
+echo "$(date): Beginning java application setup" >> /tmp/app-setup.log
 
-cd <%= @web_content_dir %>
+cd <%= @server_dir %>
 if [ "$?" -ne "0" ]; then
-  echo "$(date): cd <%= @web_content_dir %> failed" >> /tmp/app-backup.log
+  echo "$(date): cd <%= @server_dir %> failed" >> /tmp/app-backup.log
   exit 1
 fi
 
-s3cmd get <%= @s3_source_url %>/<%= @web_source_filename %>
+s3cmd get <%= @s3_source_url %>/<%= @app_package %>
 if [ "$?" -ne "0" ]; then
-  echo "$(date): s3cmd get <%= @s3_source_url %>/<%= @web_source_filename %> failed" >> /tmp/app-backup.log
+  echo "$(date): s3cmd get <%= @s3_source_url %>/<%= @app_package %> failed" >> /tmp/app-backup.log
   exit 1
 fi
 
-unzip -oq <%= @web_source_filename %>
+unzip -oq <%= @wapp_package %>
 if [ "$?" -ne "0" ]; then
-  echo "$(date): unzip -oq <%= @web_source_filename %> failed" >> /tmp/app-backup.log
+  echo "$(date): unzip -oq <%= @app_package %> failed" >> /tmp/app-backup.log
   exit 1
 fi
 
-chown -R www-data:www-data <%= @web_content_dir %>
+#chown -R www-data:www-data <%= @server_dir %>
+#if [ "$?" -ne "0" ]; then
+#  echo "$(date): chown -R www-data:www-data <%= @server_dir %> failed" >> /tmp/app-backup.log
+#  exit 1
+#fi
+
+rm -f <%= @app_package %>
 if [ "$?" -ne "0" ]; then
-  echo "$(date): chown -R www-data:www-data <%= @web_content_dir %> failed" >> /tmp/app-backup.log
+  echo "$(date): rm -f <%= @wapp_package %> failed" >> /tmp/app-backup.log
   exit 1
 fi
 
-rm -f <%= @web_source_filename %>
-if [ "$?" -ne "0" ]; then
-  echo "$(date): rm -f <%= @web_source_filename %> failed" >> /tmp/app-backup.log
-  exit 1
-fi
-
-echo "$(date): Completed web application setup" >> /tmp/app-setup.log
+echo "$(date): Completed java application setup" >> /tmp/app-setup.log
 exit 0

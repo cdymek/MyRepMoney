@@ -10,10 +10,17 @@ mv cookbooks-*.tar.gz ~/Workspaces/MyRepMoney/chef.tar.gz
 cd ~/Workspaces/MyRepMoney/
 s3cmd put chef.tar.gz s3://cdymekbackup/MyRepMoney/chef.tar.gz
 
+# Upload Java app
+cd ~/Workspaces/MyEclipse\ Professional\ 2014/MyRepMoney_DataLoader/export
+rm myrepmoney-app.zip
+zip -ro myrepmoney-app.zip *
+s3cmd put myrepmoney-app.zip s3://cdymekbackup/MyRepMoney/myrepmoney-app.zip
+
 #Upload cloud_formation scripts
 cd ~/Workspaces/MyRepMoney/cloudformation
-s3cmd put vpc_website_setup_ec2_only.json s3://cdymekbackup/MyRepMoney/vpc_website_setup_ec2_only.json
-s3cmd put empty_vpc_setup.json s3://cdymekbackup/MyRepMoney/Mempty_vpc_setup.json
+s3cmd put vpc-1-public-2-private-subnets.json s3://cdymekbackup/MyRepMoney/vpc-1-public-2-private-subnets.json
+s3cmd put MyRepMoney-app-stack-requires-vpc.json s3://cdymekbackup/MyRepMoney/MyRepMoney-app-stack-requires-vpc.json
+s3cmd put MyRepMoney-full-stack-test.json s3://cdymekbackup/MyRepMoney/MyRepMoney-full-stack-test.json
 
 #Run the VPC Setup scripts
 #mkdir tmp

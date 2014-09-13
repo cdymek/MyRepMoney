@@ -47,7 +47,7 @@
     "Env": {
       "Description": "Environment",
       "Type": "String",
-      "Default": "Dev",
+      "Default": "Test",
       "ConstraintDescription": "must be a valid string."
     },
     "VPCName": {

@@ -4,10 +4,10 @@
 log "Configuring application of type #{node["myrepmoney"]["server_type"]}"
 server_dir = ""
 if node["myrepmoney"]["server_type"] == ("dataloader")
-	server_dir = node["dataloader"]["app_dir"],
+	server_dir = node["dataloader"]["app_dir"]
 	monitor_dir = node["dataloader"]["monitor_dir"]
 elsif node["myrepmoney"]["server_type"] == ("jcs")
-	server_dir = node["jcs"]["app_dir"],
+	server_dir = node["jcs"]["app_dir"]
 	monitor_dir = node["jcs"]["monitor_dir"]
 else
 	log "Undefined server type provided"
@@ -64,7 +64,7 @@ if server_dir != ("")
 		mode 0644
 		variables(
 			:java_log_dir => node["java"]["log_dir"],
-			:server_type => node["server"]["type"]
+			:server_type => node["myrepmoney"]["server_type"]
 		)
 	end	
 	log "Properties files created"
@@ -99,5 +99,14 @@ if server_dir != ("")
 			:jar_file => node["myrepmoney"]["jar_file"]
 		)
 	end
+
+
+	service "java-app-service" do
+  		supports :start => true, :restart => true, :stop => true
+  		start_command "#{server_dir}/java-app.sh start"
+  		restart_command "#{server_dir}/java-app.sh restart"
+  		stop_command "#{server_dir}/java-app.sh stop"
+  		action [ :start ]
+  	end
 
 end 

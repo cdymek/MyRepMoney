@@ -40,7 +40,7 @@ if [ "$1" = "stop" ] || [ "$1" = "restart" ]; then
     sleep 2
   done
 
-  rm -f <%= @monitor_dir %>*
+  rm -f <%= @monitor_dir %>/*
   if [ "$?" -ne "0" ]; then
     echo "$(date): rm -f <%= @monitor_dir %>/* failed" >> /tmp/app-run.log
     echo "$(date): rm -f <%= @monitor_dir %>/* failed"
@@ -70,7 +70,7 @@ if [ "$1" = "start" ] || [ "$1" = "restart" ]; then
     fi
   fi
 
-  rm -f <%= @monitor_dir %>*
+  rm -f <%= @monitor_dir %>/*
   if [ "$?" -ne "0" ]; then
     echo "$(date): rm -f <%= @monitor_dir %>/* failed" >> /tmp/app-run.log
     echo "$(date): rm -f <%= @monitor_dir %>/* failed"
@@ -84,10 +84,10 @@ if [ "$1" = "start" ] || [ "$1" = "restart" ]; then
     exit 1    
   fi  
 
-  java -jar <%= @jar_file %>
+  nohup java -jar <%= @jar_file %> &
   if [ "$?" -ne "0" ]; then
-    echo "$(date): java -jar <%= @jar_file %>" >> /tmp/app-run.log
-    echo "$(date): java -jar <%= @jar_file %>"
+    echo "$(date): nohup java -jar <%= @jar_file %> &" >> /tmp/app-run.log
+    echo "$(date): nohup java -jar <%= @jar_file %> &"
     exit 1    
   fi
   echo "$(date): Java app started."  >> /tmp/app-run.log

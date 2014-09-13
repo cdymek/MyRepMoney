@@ -4,7 +4,7 @@
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
     </Console>
-	<File name="File" fileName="<%= @java_log_dir %>/MyRepMoney-<%= @server_type %>-{%d}.log">
+	<File name="File" fileName="<%= @java_log_dir %>/MyRepMoney-<%= @server_type %>-${date:yyyy-MM-dd}.log">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
     </File>    
   </Appenders>

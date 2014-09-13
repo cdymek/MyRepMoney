@@ -1,26 +1,28 @@
-log "Implementing backup scripts"
-directory node["server"]["backup_scripts"] do
-  owner 'root'
-  group 'root'
-  mode 0755
-  recursive true
-  action :create
-end
-
-#Archive the current root crontab
-script "#{ENV['HOME']}/crontab.source" do
-	interpreter "bash"
-	user "root"
-	cwd "#{ENV['HOME']}"
-	code <<-EOH
-	crontab -l > crontab.source
-	if [ "$?" -ne "0" ]; then
-		touch crontab.source
-	fi
-	EOH
-end
-
 if node["mysql"]["load_sql_file"] == ("Y")
+log "Implementing backup scripts"
+
+	directory node["server"]["backup_scripts"] do
+	  owner 'root'
+	  group 'root'
+	  mode 0755
+	  recursive true
+	  action :create
+	end
+
+	#Archive the current root crontab
+	script "#{ENV['HOME']}/crontab.source" do
+		interpreter "bash"
+		user "root"
+		cwd "#{ENV['HOME']}"
+		code <<-EOH
+		crontab -l > crontab.source
+		if [ "$?" -ne "0" ]; then
+			touch crontab.source
+		fi
+		EOH
+	end
+
+
 
 	log "Implementing database backup script"
 
@@ -56,19 +58,19 @@ if node["mysql"]["load_sql_file"] == ("Y")
 	end
 
 	log "Database backup script implemented"
-end
 
-#Replace the current root crontab
-execute "#{ENV['HOME']}/crontab.source" do
-	user "root"
-	cwd "#{ENV['HOME']}"
-	command "crontab crontab.source"
-end
+	#Replace the current root crontab
+	execute "#{ENV['HOME']}/crontab.source" do
+		user "root"
+		cwd "#{ENV['HOME']}"
+		command "crontab crontab.source"
+	end
 
-#Restart the crontab
-execute "/etc/init.d/cron restart" do
-  user "root"
-  cwd "/etc/init.d"
-  command "/etc/init.d/cron restart"
+	#Restart the crontab
+	execute "/etc/init.d/cron restart" do
+	  user "root"
+	  cwd "/etc/init.d"
+	  command "/etc/init.d/cron restart"
+	end
+	log "Cron restarted with backup jobs configured."
 end
-log "Cron restarted with backup jobs configured."

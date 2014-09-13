@@ -324,7 +324,21 @@
                     "s3:GetObject",
                     "s3:GetObjectTorrent",
                     "s3:GetObjectVersion",
-                    "s3:GetObjectVersionTorrent"
+                    "s3:GetObjectVersionTorrent",
+                    "s3:PutObject",
+                    "s3:PutObjectAcl",
+                    "s3:PutObjectVersionAcl",
+                    "route53:ChangeResourceRecordSets",
+                    "route53:GetChange",
+                    "route53:GetHostedZone",
+                    "route53:ListHostedZones",
+                    "route53:ListResourceRecordSets",
+                    "sqs:ChangeMessageVisibility",
+                    "sqs:DeleteMessage",
+                    "sqs:GetQueueAttributes",
+                    "sqs:GetQueueUrl",
+                    "sqs:ReceiveMessage",
+                    "sqs:SendMessage"                    
                   ],
                   "Resource": "*"
                 }
@@ -527,7 +541,16 @@
                       "Ref": "DNSDomainList"
                     },
                     "sqs_queue": { "Ref": "SQSQueueName" },
-                    "sqs_url": { "Ref": "JCSQueue" }
+                    "sqs_url": { "Ref": "JCSQueue" },
+                    "access_key": { 
+                      "Ref": "HostKeys"
+                    },
+                    "secret_key": {
+                      "Fn::GetAtt": [
+                        "HostKeys",
+                        "SecretAccessKey"
+                      ]
+                    }
                   },
                   "run_list": [
                     "recipe[MyRepMoney::default]"
@@ -809,7 +832,16 @@
                       "Ref": "DNSDomainList"
                     },
                     "sqs_queue": { "Ref": "SQSQueueName" },
-                    "sqs_url": { "Ref": "JCSQueue" }
+                    "sqs_url": { "Ref": "JCSQueue" },
+                    "access_key": { 
+                      "Ref": "HostKeys"
+                    },
+                    "secret_key": {
+                      "Fn::GetAtt": [
+                        "HostKeys",
+                        "SecretAccessKey"
+                      ]
+                    }
                   },
                   "run_list": [
                     "recipe[MyRepMoney::default]"
@@ -985,8 +1017,8 @@
       "Properties": {
         "AvailabilityZones": { "Ref" : "SubnetAZList" },
         "LaunchConfigurationName": { "Ref": "DataLoaderServerLaunchConfiguration" },
-        "MinSize": "1",
-        "MaxSize": "10",
+        "MinSize": "0",
+        "MaxSize": "2",
         "Tags" : [{
           "Key"   : "Name",
           "Value" : { "Fn::Join"  : [ "-" , [ { "Ref" : "AWS::StackName" }, "dataloader" ]]},
@@ -1209,8 +1241,8 @@
         "Statistic": "Average",
         "Period": "300",
         "EvaluationPeriods": "2",
-        "Threshold": "10",
-        "ComparisonOperator": "GreaterThanThreshold",
+        "Threshold": "1",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
         "AlarmActions": [{
           "Ref": "AlarmNotificationTopic"
         },{
@@ -1234,7 +1266,7 @@
         "Statistic": "Average",
         "Period": "300",
         "EvaluationPeriods": "2",
-        "Threshold": "10",
+        "Threshold": "1",
         "ComparisonOperator": "LessThanThreshold",
         "AlarmActions": [{
           "Ref": "AlarmNotificationTopic"
