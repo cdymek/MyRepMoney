@@ -31,7 +31,36 @@ As written, the job server only initiates downloads from Internet data sets.  Th
 
 Data Analytics
 ==============
-To be determined.
+The following are potential metrics to define and implement:
+
+In Aggregate...
+- Funds raised by zip code
+- Funds raised by state
+- Funds raised by Congressional district
+- Funds raised by Employer
+- Funds raised by Industry
+
+Per candidate...
+- Funds raised by zip code
+- Funds raised by state
+- Funds raised by Congressional district
+- Funds raised by Employer
+- Funds raised by Industry
+- Ratio of funds raised within the district vs. outside the district
+
+Per Party...
+- Funds raised by zip code
+- Funds raised by state
+- Funds raised by Congressional district
+- Funds raised by Employer
+- Funds raised by Industry
+
+Individual vs. Committee...
+- Funds raised by zip code
+- Funds raised by state
+- Funds raised by Congressional district
+- Funds raised by Employer
+- Funds raised by Industry
 
 
 Web Reports
@@ -42,3 +71,9 @@ To be determined.
 APIs
 ==============
 To be determined.
+
+
+Bugs
+==============
+1. LOG FILE DOES NOT ROLL OVER EACH DAY
+2. DATABASE CONNECTIONS DO NOT CLOSE PROPERLY 
