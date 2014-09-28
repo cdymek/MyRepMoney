@@ -1,6 +1,6 @@
 /**
 This file documents the table create scripts used to populate a clean environment.  To load a new environment in AWS, use the following url:
-https://s3.amazonaws.com/cdymekbackup/MyRepMoney/MyRepMoney-full-stack-pub-vpn-test.json
+https://s3.amazonaws.com/cdymekbackup/MyRepMoney/MyRepMoney-full-stack-pub-vpc-test.json
 JCS Server Id: 54.165.51.99
 
 Abbreviations
@@ -23,6 +23,7 @@ ELECTION_CYCLE VARCHAR(10) NOT NULL,
 DATA_LOADER_CLASS VARCHAR(200) NOT NULL,
 ADDED_BY VARCHAR(25)
 );
+CREATE INDEX master_source_download_scheduled_load_time ON master_source_download (SCHEDULED_LOAD_TIME);
 
 /** Candidate Contributions from a Committee Table **/
 CREATE TABLE stg_fec_candidate_contrib_comm (
@@ -50,6 +51,9 @@ MEMO_TEXT VARCHAR(100),
 SUB_ID INTEGER(19),
 ELECTION_CYCLE VARCHAR(10)
 );
+
+CREATE INDEX stg_fec_candidate_contrib_comm_part_of_zip_code ON stg_fec_candidate_contrib_comm (zip_code(5));
+CREATE INDEX stg_fec_candidate_contrib_comm_election_cycle ON stg_fec_candidate_contrib_comm (election_cycle);
 
 insert into master_source_download (SOURCE_ENTITY, SOURCE_URL, TARGET_TABLE, SOURCE_ACTIVE, 
 	DATE_ADDED, ADDED_BY, ELECTION_CYCLE, SOURCE_FILE_TYPE, DATA_LOADER_CLASS, SCHEDULED_LOAD_TIME, 
@@ -83,6 +87,10 @@ CONNECTED_ORG_NM VARCHAR(200),
 CAND_ID INTEGER(9),
 ELECTION_CYCLE VARCHAR(10)
 );
+
+CREATE INDEX stg_fec_comm_master_file_comm_cmte_nm ON stg_fec_comm_master_file (CMTE_NM);
+CREATE INDEX stg_fec_comm_master_file_comm_part_of_zip_code ON stg_fec_comm_master_file (zip_code(5));
+CREATE INDEX stg_fec_comm_master_file_election_cycle ON stg_fec_comm_master_file (election_cycle);
 
 /**2013-2014*/
 insert into master_source_download (SOURCE_ENTITY, SOURCE_URL, TARGET_TABLE, SOURCE_ACTIVE, 
@@ -150,6 +158,10 @@ CAND_ZIP VARCHAR(9),
 ELECTION_CYCLE VARCHAR(10)
 );
 
+CREATE INDEX stg_fec_cand_master_file_comm_cand_name ON stg_fec_cand_master_file (CAND_NAME);
+CREATE INDEX stg_fec_cand_master_file_comm_part_of_zip_code ON stg_fec_cand_master_file (cand_zip(5));
+CREATE INDEX stg_fec_cand_master_file_election_cycle ON stg_fec_cand_master_file (election_cycle);
+
 /**2013-2014*/
 insert into master_source_download (SOURCE_ENTITY, SOURCE_URL, TARGET_TABLE, SOURCE_ACTIVE, 
 	DATE_ADDED, ADDED_BY, ELECTION_CYCLE, SOURCE_FILE_TYPE, DATA_LOADER_CLASS, SCHEDULED_LOAD_TIME, 
@@ -207,6 +219,9 @@ CMTE_DSGN VARCHAR(1),
 LINKAGE_ID INTEGER(12) NOT NULL,
 ELECTION_CYCLE VARCHAR(10)
 );
+CREATE INDEX stg_fec_cand_comm_link_file_cand_id ON stg_fec_cand_comm_link_file (CAND_ID);
+CREATE INDEX stg_fec_cand_comm_link_file_cmte_id ON stg_fec_cand_comm_link_file (CMTE_ID);
+CREATE INDEX stg_fec_cand_comm_link_file_election_cycle ON stg_fec_cand_comm_link_file (election_cycle);
 
 /**2013-2014*/
 insert into master_source_download (SOURCE_ENTITY, SOURCE_URL, TARGET_TABLE, SOURCE_ACTIVE, 
@@ -279,6 +294,11 @@ MEMO_TEXT VARCHAR(100),
 SUB_ID INTEGER(19) NOT NULL,
 ELECTION_CYCLE VARCHAR(10)
 );
+CREATE INDEX stg_fec_comm_comm_contrib_file_name ON stg_fec_comm_comm_contrib_file (NAME);
+CREATE INDEX stg_fec_comm_comm_contrib_file_employer ON stg_fec_comm_comm_contrib_file (EMPLOYER);
+CREATE INDEX stg_fec_comm_comm_contrib_file_occupation ON stg_fec_comm_comm_contrib_file (OCCUPATION);
+CREATE INDEX stg_fec_comm_comm_contrib_file_part_of_zip_code ON stg_fec_comm_comm_contrib_file (zip_code(5));
+CREATE INDEX stg_fec_comm_comm_contrib_file_election_cycle ON stg_fec_comm_comm_contrib_file (election_cycle);
 
 /**2013-2014*/
 insert into master_source_download (SOURCE_ENTITY, SOURCE_URL, TARGET_TABLE, SOURCE_ACTIVE, 
@@ -352,6 +372,13 @@ SUB_ID INTEGER(19) NOT NULL,
 ELECTION_CYCLE VARCHAR(10)
 );
 
+CREATE INDEX stg_fec_ind_contrib_file_name ON stg_fec_ind_contrib_file (NAME);
+CREATE INDEX stg_fec_ind_contrib_file_employer ON stg_fec_ind_contrib_file (EMPLOYER);
+CREATE INDEX stg_fec_ind_contrib_file_occupation ON stg_fec_ind_contrib_file (OCCUPATION);
+CREATE INDEX stg_fec_ind_contrib_file_part_of_zip_code ON stg_fec_ind_contrib_file (zip_code(5));
+CREATE INDEX stg_fec_ind_contrib_file_election_cycle ON stg_fec_ind_contrib_file (election_cycle);
+
+
 /**2013-2014*/
 insert into master_source_download (SOURCE_ENTITY, SOURCE_URL, TARGET_TABLE, SOURCE_ACTIVE, 
 	DATE_ADDED, ADDED_BY, ELECTION_CYCLE, SOURCE_FILE_TYPE, DATA_LOADER_CLASS, SCHEDULED_LOAD_TIME, 
@@ -396,3 +423,120 @@ VALUES ('FEC', 'ftp://ftp.fec.gov/FEC/2004/indiv04.zip', 'stg_fec_ind_contrib_fi
 	'|');
 
 update master_source_download SET SCHEDULED_LOAD_TIME = '02:30:00' WHERE TARGET_TABLE='stg_fec_ind_contrib_file';
+
+
+/** Total Contributions by Zip Code and Election Cycle Table **/
+
+CREATE TABLE fec_zip_summaries_full (
+ELECTION_CYCLE VARCHAR(10),
+ZIP_CODE VARCHAR(5),
+IND_AMT DECIMAL(14,2),
+COMM_AMT DECIMAL(14,2),
+TOTAL_AMT DECIMAL(14,2)
+);
+CREATE INDEX stg_fec_contrib_by_zip_summary_part_of_zip_code ON fec_zip_summaries_full (zip_code);
+CREATE INDEX stg_fec_contrib_by_zip_summary_election_cycle ON fec_zip_summaries_full (election_cycle);
+
+/**2013-2014*/
+insert into master_source_download (SOURCE_ENTITY, SOURCE_URL, TARGET_TABLE, SOURCE_ACTIVE, 
+	DATE_ADDED, ADDED_BY, ELECTION_CYCLE, SOURCE_FILE_TYPE, DATA_LOADER_CLASS, SCHEDULED_LOAD_TIME, 
+	DELIMITER) 
+VALUES ('FEC', '.', 'fec_zip_summaries_full', 1, 
+	'2014-09-21 21:22', 'DYMEKC', '2013-2014', 'sql', 'com.MyRepMoney.dataloader.FECSummaryDataLoader', '', 
+	'|');
+/**2011-2012*/
+insert into master_source_download (SOURCE_ENTITY, SOURCE_URL, TARGET_TABLE, SOURCE_ACTIVE, 
+	DATE_ADDED, ADDED_BY, ELECTION_CYCLE, SOURCE_FILE_TYPE, DATA_LOADER_CLASS, SCHEDULED_LOAD_TIME, 
+	DELIMITER) 
+VALUES ('FEC', '.', 'fec_zip_summaries_full', 1, 
+	'2014-09-21 21:22', 'DYMEKC', '2011-2012', 'sql', 'com.MyRepMoney.dataloader.FECSummaryDataLoader', '', 
+	'|');
+/**2009-2010*/
+insert into master_source_download (SOURCE_ENTITY, SOURCE_URL, TARGET_TABLE, SOURCE_ACTIVE, 
+	DATE_ADDED, ADDED_BY, ELECTION_CYCLE, SOURCE_FILE_TYPE, DATA_LOADER_CLASS, SCHEDULED_LOAD_TIME, 
+	DELIMITER) 
+VALUES ('FEC', '.', 'fec_zip_summaries_full', 1,  
+	'2014-09-21 21:22', 'DYMEKC', '2009-2010', 'sql', 'com.MyRepMoney.dataloader.FECSummaryDataLoader', '', 
+	'|');
+/**2007-2008*/
+insert into master_source_download (SOURCE_ENTITY, SOURCE_URL, TARGET_TABLE, SOURCE_ACTIVE, 
+	DATE_ADDED, ADDED_BY, ELECTION_CYCLE, SOURCE_FILE_TYPE, DATA_LOADER_CLASS, SCHEDULED_LOAD_TIME, 
+	DELIMITER) 
+VALUES ('FEC', '.', 'fec_zip_summaries_full', 1, 
+	'2014-09-21 21:22', 'DYMEKC', '2007-2008', 'sql', 'com.MyRepMoney.dataloader.FECSummaryDataLoader', '', 
+	'|');
+/**2005-2006*/
+insert into master_source_download (SOURCE_ENTITY, SOURCE_URL, TARGET_TABLE, SOURCE_ACTIVE, 
+	DATE_ADDED, ADDED_BY, ELECTION_CYCLE, SOURCE_FILE_TYPE, DATA_LOADER_CLASS, SCHEDULED_LOAD_TIME, 
+	DELIMITER) 
+VALUES ('FEC', '.', 'fec_zip_summaries_full', 1, 
+	'2014-09-21 21:22', 'DYMEKC', '2005-2006', 'sql', 'com.MyRepMoney.dataloader.FECSummaryDataLoader', '', 
+	'|');
+/**2003-2004*/
+insert into master_source_download (SOURCE_ENTITY, SOURCE_URL, TARGET_TABLE, SOURCE_ACTIVE, 
+	DATE_ADDED, ADDED_BY, ELECTION_CYCLE, SOURCE_FILE_TYPE, DATA_LOADER_CLASS, SCHEDULED_LOAD_TIME, 
+	DELIMITER) 
+VALUES ('FEC', '.', 'fec_zip_summaries_full', 1, 
+	'2014-09-21 21:22', 'DYMEKC', '2003-2004', 'sql', 'com.MyRepMoney.dataloader.FECSummaryDataLoader', '', 
+	'|');
+
+update master_source_download SET SCHEDULED_LOAD_TIME = '03:30:00' WHERE TARGET_TABLE='fec_zip_summaries_full';
+
+
+/** Create temp table **/
+
+
+CREATE TABLE tmp_fec_zip_summaries_comm (
+ELECTION_CYCLE VARCHAR(10),
+ZIP_CODE VARCHAR(5),
+AMT DECIMAL(14,2)
+);
+
+CREATE TABLE tmp_fec_zip_summaries_ind (
+ELECTION_CYCLE VARCHAR(10),
+ZIP_CODE VARCHAR(5),
+AMT DECIMAL(14,2)
+);
+
+CREATE TABLE tmp_fec_zip_summaries_total (
+ELECTION_CYCLE VARCHAR(10),
+ZIP_CODE VARCHAR(5),
+AMT DECIMAL(14,2)
+);
+
+/** Gets the first data set **/
+INSERT INTO tmp_fec_zip_summaries_comm (ELECTION_CYCLE, ZIP_CODE, AMT)  
+SELECT ELECTION_CYCLE, LEFT(ZIP_CODE, 5), SUM(TRANSACTION_AMT) 
+FROM stg_fec_candidate_contrib_comm 
+WHERE stg_fec_candidate_contrib_comm.ELECTION_CYCLE = '2005-2006'
+GROUP BY election_cycle, LEFT(zip_code, 5) ;
+
+/**Gets the 2nd **/
+INSERT INTO tmp_fec_zip_summaries_ind (ELECTION_CYCLE, ZIP_CODE, AMT)  
+SELECT ELECTION_CYCLE, LEFT(ZIP_CODE, 5), SUM(TRANSACTION_AMT) 
+FROM stg_fec_ind_contrib_file 
+WHERE stg_fec_ind_contrib_file.ELECTION_CYCLE = '2005-2006'
+GROUP BY election_cycle, LEFT(zip_code, 5) ;
+
+INSERT INTO tmp_fec_zip_summaries_total (ELECTION_CYCLE, ZIP_CODE, AMT)
+SELECT election_cycle, zip_code, sum(AMT)
+FROM (
+	select election_cycle, zip_code, AMT FROM tmp_fec_zip_summaries_comm
+	UNION
+	select election_cycle, zip_code, AMT FROM tmp_fec_zip_summaries_ind
+	) AS tmp
+GROUP BY election_cycle, zip_code ;
+
+/** Combined view **/
+INSERT INTO tmp_fec_zip_summaries_full (ELECTION_CYCLE, ZIP_CODE, COMM_AMT, IND_AMT, TOTAL_AMT)
+SELECT tmp_fec_zip_summaries_total.election_cycle, tmp_fec_zip_summaries_total.zip_code, 
+COALESCE(tmp_fec_zip_summaries_comm.amt, 0) as comm_amt, COALESCE(tmp_fec_zip_summaries_ind.amt, 0) as IND_AMT, COALESCE(tmp_fec_zip_summaries_total.amt, 0) as TOTAL_AMT
+FROM tmp_fec_zip_summaries_total LEFT JOIN tmp_fec_zip_summaries_ind 
+ON (tmp_fec_zip_summaries_total.election_cycle = tmp_fec_zip_summaries_ind.election_cycle AND tmp_fec_zip_summaries_total.zip_code = tmp_fec_zip_summaries_ind.zip_code)
+LEFT JOIN tmp_fec_zip_summaries_comm ON
+(tmp_fec_zip_summaries_total.election_cycle = tmp_fec_zip_summaries_comm.election_cycle AND tmp_fec_zip_summaries_total.zip_code = tmp_fec_zip_summaries_comm.zip_code)
+
+/** Clean up **/
+drop table tmp_fec_zip_summaries_comm;
+drop table tmp_fec_zip_summaries_ind;
+drop table tmp_fec_zip_summaries_total;
