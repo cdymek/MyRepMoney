@@ -34,33 +34,33 @@ Data Analytics
 The following are potential metrics to define and implement:
 
 In Aggregate...
-- Funds raised by zip code
-- Funds raised by state
-- Funds raised by Congressional district
-- Funds raised by Employer
-- Funds raised by Industry
+- Funds raised by zip code (IN TESTING)
+- Funds raised by state (NOT STARTED)
+- Funds raised by Congressional district (NOT STARTED)
+- Funds raised by Employer (NOT STARTED)
+- Funds raised by Industry (NOT STARTED)
 
 Per candidate...
-- Funds raised by zip code
-- Funds raised by state
-- Funds raised by Congressional district
-- Funds raised by Employer
-- Funds raised by Industry
-- Ratio of funds raised within the district vs. outside the district
+- Funds raised by zip code (NOT STARTED)
+- Funds raised by state (NOT STARTED)
+- Funds raised by Congressional district (NOT STARTED)
+- Funds raised by Employer (NOT STARTED)
+- Funds raised by Industry (NOT STARTED)
+- Ratio of funds raised within the district vs. outside the district (NOT STARTED)
 
 Per Party...
-- Funds raised by zip code
-- Funds raised by state
-- Funds raised by Congressional district
-- Funds raised by Employer
-- Funds raised by Industry
+- Funds raised by zip code (NOT STARTED)
+- Funds raised by state (NOT STARTED)
+- Funds raised by Congressional district (NOT STARTED)
+- Funds raised by Employer (NOT STARTED)
+- Funds raised by Industry (NOT STARTED)
 
 Individual vs. Committee...
-- Funds raised by zip code
-- Funds raised by state
-- Funds raised by Congressional district
-- Funds raised by Employer
-- Funds raised by Industry
+- Funds raised by zip code (IN PROGRESS)
+- Funds raised by state (NOT STARTED)
+- Funds raised by Congressional district (NOT STARTED)
+- Funds raised by Employer (NOT STARTED)
+- Funds raised by Industry (NOT STARTED)
 
 
 Web Reports
@@ -72,8 +72,3 @@ APIs
 ==============
 To be determined.
 
-
-Bugs
-==============
-1. LOG FILE DOES NOT ROLL OVER EACH DAY
-2. DATABASE CONNECTIONS DO NOT CLOSE PROPERLY 

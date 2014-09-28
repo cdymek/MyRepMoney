@@ -62,22 +62,16 @@
       "Default": "10.0.0.0/16",
       "ConstraintDescription": "Must be a valid address range (e.g. 10.0.0.0/16)"
     },
-    "PublicCIDR": {
+    "PublicCIDR1": {
       "Description": "Address range of CIDR",
       "Type": "String",
       "Default": "10.0.1.0/24",
       "ConstraintDescription": "Must be a valid address range (e.g. 10.0.0.0/16)"
     },
-    "PrivateCIDR1": {
+    "PublicCIDR2": {
       "Description": "Address range of CIDR",
       "Type": "String",
       "Default": "10.0.2.0/24",
-      "ConstraintDescription": "Must be a valid address range (e.g. 10.0.0.0/16)"
-    },
-    "PrivateCIDR2": {
-      "Description": "Address range of CIDR",
-      "Type": "String",
-      "Default": "10.0.3.0/24",
       "ConstraintDescription": "Must be a valid address range (e.g. 10.0.0.0/16)"
     },
     "KeyName": {
@@ -202,7 +196,7 @@
       "ConstraintDescription": "must contain only alphanumeric characters."
     },
     "DBAllocatedStorage": {
-      "Default": "5",
+      "Default": "10",
       "Description": "The size of the database (Gb)",
       "Type": "Number",
       "MinValue": "5",
@@ -269,7 +263,7 @@
     "MyRepMoneyVpcStack": {
       "Type": "AWS::CloudFormation::Stack",
       "Properties": {
-        "TemplateURL": "https://s3.amazonaws.com/cdymekbackup/MyRepMoney/vpc-1-public-2-private-subnets.json",
+        "TemplateURL": "https://s3.amazonaws.com/cdymekbackup/MyRepMoney/vpc-2-public-subnets.json",
         "Parameters": {
           "AZPrimary": {
             "Ref": "AZPrimary"
@@ -286,14 +280,11 @@
           "VPCCIDR": {
             "Ref": "VPCCIDR"
           },
-          "PublicCIDR": {
-            "Ref": "PublicCIDR"
+          "PublicCIDR1": {
+            "Ref": "PublicCIDR1"
           },
-          "PrivateCIDR1": {
-            "Ref": "PrivateCIDR1"
-          },
-          "PrivateCIDR2": {
-            "Ref": "PrivateCIDR2"
+          "PublicCIDR2": {
+            "Ref": "PublicCIDR2"
           }
         }
       }
@@ -312,7 +303,7 @@
           "PublicSubnet": {
             "Fn::GetAtt": [
               "MyRepMoneyVpcStack",
-              "Outputs.PublicSubnet"
+              "Outputs.PublicSubnet1"
             ]
           },
           "PublicSubnetAZ": { 
@@ -321,13 +312,13 @@
           "SubnetId1": {
             "Fn::GetAtt": [
               "MyRepMoneyVpcStack",
-              "Outputs.PrivateSubnet1"
+              "Outputs.PublicSubnet1"
             ]
           },
           "SubnetId2": {
             "Fn::GetAtt": [
               "MyRepMoneyVpcStack",
-              "Outputs.PrivateSubnet2"
+              "Outputs.PublicSubnet2"
             ]
           },
           "SubnetAZList": {
@@ -342,7 +333,7 @@
           "DataLoaderInstanceType": {
             "Ref": "DataLoaderInstanceType"
           },
-          "DataLoaderInstancePubliclyAccessible": "false",
+          "DataLoaderInstancePubliclyAccessible": "true",
           "JCSInstanceType": {
             "Ref": "JCSInstanceType"
           },
@@ -409,30 +400,21 @@
         ]
       }
     },
-    "PublicSubnet": {
+    "PublicSubnet1": {
       "Description": "Public Subnet",
       "Value": {
         "Fn::GetAtt": [
           "MyRepMoneyVpcStack",
-          "Outputs.PublicSubnet"
+          "Outputs.PublicSubnet1"
         ]
       }
     },
-    "PrivateSubnet1": {
-      "Description": "Private Subnet",
+    "PublicSubnet2": {
+      "Description": "Public Subnet",
       "Value": {
         "Fn::GetAtt": [
           "MyRepMoneyVpcStack",
-          "Outputs.PrivateSubnet1"
-        ]
-      }
-    },    
-    "PrivateSubnet2": {
-      "Description": "Private Subnet",
-      "Value": {
-        "Fn::GetAtt": [
-          "MyRepMoneyVpcStack",
-          "Outputs.PrivateSubnet2"
+          "Outputs.PublicSubnet2"
         ]
       }
     },

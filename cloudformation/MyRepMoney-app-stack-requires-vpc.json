@@ -41,7 +41,17 @@
         "hs1.8xlarge"
       ],
       "ConstraintDescription": "must be a valid EC2 instance type."   
-    }, 
+    },
+    "DataLoaderInstancePubliclyAccessible": {
+      "Description": "Assign EIP to DataLoader Instances",
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "false",
+        "true"
+      ],
+      "ConstraintDescription": "must be either true or false."       
+    },
     "JCSInstanceType": {
       "Description": "Job Control Server EC2 instance type",
       "Type": "String",
@@ -164,7 +174,7 @@
       "ConstraintDescription": "must contain only alphanumeric characters."
     },
     "DBAllocatedStorage": {
-      "Default": "5",
+      "Default": "10",
       "Description": "The size of the database (Gb)",
       "Type": "Number",
       "MinValue": "5",
@@ -921,6 +931,9 @@
         }
       },
       "Properties": {
+        "AssociatePublicIpAddress": {
+          "Ref": "DataLoaderInstancePubliclyAccessible"
+        },        
         "ImageId": {
           "Fn::FindInMap": [
             "AWSRegionArch2AMI",
@@ -1018,7 +1031,8 @@
         "AvailabilityZones": { "Ref" : "SubnetAZList" },
         "LaunchConfigurationName": { "Ref": "DataLoaderServerLaunchConfiguration" },
         "MinSize": "0",
-        "MaxSize": "2",
+        "MaxSize": "1",
+        "DesiredCapacity": "0",
         "Tags" : [{
           "Key"   : "Name",
           "Value" : { "Fn::Join"  : [ "-" , [ { "Ref" : "AWS::StackName" }, "dataloader" ]]},
@@ -1265,7 +1279,7 @@
         }],
         "Statistic": "Average",
         "Period": "300",
-        "EvaluationPeriods": "2",
+        "EvaluationPeriods": "22",
         "Threshold": "1",
         "ComparisonOperator": "LessThanThreshold",
         "AlarmActions": [{
@@ -1277,7 +1291,48 @@
           "Ref": "AlarmNotificationTopic"
         }]
       }      
-    },    
+    },
+    "CPUAlarmDB" : {
+      "Type" : "AWS::CloudWatch::Alarm",
+      "Properties" : {
+        "AlarmDescription": { "Fn::Join" : ["", [{ "Ref" : "DBInstance" }, "DB CPU Utilization"]]},
+        "MetricName": "CPUUtilization",
+        "Namespace": "AWS/RDS",
+        "Statistic": "Average",
+        "Period": "300",
+        "EvaluationPeriods": "2",
+        "Threshold": "80",
+        "AlarmActions": [
+          {
+            "Ref": "AlarmNotificationTopic"
+          }
+        ],
+        "Dimensions": [{ "Name": "DBInstanceIdentifier",
+                         "Value": { "Ref": "DBInstance" } }],
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold"
+      }
+    },   
+
+    "LowFreeSpaceAlarmDB" : {
+      "Type" : "AWS::CloudWatch::Alarm",
+      "Properties" : {
+        "AlarmDescription": { "Fn::Join" : ["", [{ "Ref" : "DBInstance" }, " DB Low Free Space"]]},
+        "MetricName": "FreeStorageSpace",
+        "Namespace": "AWS/RDS",
+        "Statistic": "Average",
+        "Period": "3600",
+        "EvaluationPeriods": "4",
+        "Threshold": "1048576000",
+        "AlarmActions": [
+          {
+            "Ref": "AlarmNotificationTopic"
+          }
+        ],
+        "Dimensions": [{ "Name": "DBInstanceIdentifier",
+                         "Value": { "Ref": "DBInstance" } }],
+        "ComparisonOperator": "LessThanOrEqualToThreshold"
+      }
+    },      
     "AlarmNotificationTopic": {
       "Type": "AWS::SNS::Topic",
       "Properties": {
