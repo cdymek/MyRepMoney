@@ -1,4 +1,13 @@
 #!/bin/bash
+# Copy the Java source code to the Git Repository
+cd ~/Workspaces/MyEclipse\ Professional\ 2014/MyRepMoney_DataLoader/
+rm -r ~/Workspaces/MyRepMoney/java
+mkdir ~/Workspaces/MyRepMoney/java
+cp -R src ~/Workspaces/MyRepMoney/java/src
+mkdir ~/Workspaces/MyRepMoney/java/export
+cp export/ant.xml ~/Workspaces/MyRepMoney/java/export
+cp -R lib ~/Workspaces/MyRepMoney/java/lib
+
 #Add files to git
 cd ~/Workspaces/MyRepMoney
 git commit -m "Updated files added"
@@ -19,8 +28,10 @@ s3cmd put myrepmoney-app.zip s3://cdymekbackup/MyRepMoney/myrepmoney-app.zip
 #Upload cloud_formation scripts
 cd ~/Workspaces/MyRepMoney/cloudformation
 s3cmd put vpc-1-public-2-private-subnets.json s3://cdymekbackup/MyRepMoney/vpc-1-public-2-private-subnets.json
+s3cmd put vpc-2-public-subnets.json s3://cdymekbackup/MyRepMoney/vpc-2-public-subnets.json
 s3cmd put MyRepMoney-app-stack-requires-vpc.json s3://cdymekbackup/MyRepMoney/MyRepMoney-app-stack-requires-vpc.json
-s3cmd put MyRepMoney-full-stack-test.json s3://cdymekbackup/MyRepMoney/MyRepMoney-full-stack-test.json
+s3cmd put MyRepMoney-full-stack-prvt-vpc-test.json s3://cdymekbackup/MyRepMoney/MyRepMoney-full-stack-prvt-vpc-test.json
+s3cmd put MyRepMoney-full-stack-pub-vpc-test.json s3://cdymekbackup/MyRepMoney/MyRepMoney-full-stack-pub-vpc-test.json
 
 #Run the VPC Setup scripts
 #mkdir tmp
