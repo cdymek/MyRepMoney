@@ -6,9 +6,11 @@ server_dir = ""
 if node["myrepmoney"]["server_type"] == ("dataloader")
 	server_dir = node["dataloader"]["app_dir"]
 	monitor_dir = node["dataloader"]["monitor_dir"]
+	debug_level = node["dataloader"]["debug_level"]
 elsif node["myrepmoney"]["server_type"] == ("jcs")
 	server_dir = node["jcs"]["app_dir"]
 	monitor_dir = node["jcs"]["monitor_dir"]
+	debug_level = node["jcs"]["debug_level"]
 else
 	log "Undefined server type provided"
 end
@@ -64,7 +66,8 @@ if server_dir != ("")
 		mode 0644
 		variables(
 			:java_log_dir => node["java"]["log_dir"],
-			:server_type => node["myrepmoney"]["server_type"]
+			:server_type => node["myrepmoney"]["server_type"],
+			:debug_level => debug_level
 		)
 	end	
 	log "Properties files created"
