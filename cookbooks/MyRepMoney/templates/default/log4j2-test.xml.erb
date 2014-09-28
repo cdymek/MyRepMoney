@@ -4,22 +4,27 @@
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
     </Console>
-	<File name="File" fileName="<%= @java_log_dir %>/MyRepMoney-<%= @server_type %>-${date:yyyy-MM-dd}.log">
+	  <RollingFile name="RollingFile" fileName="<%= @java_log_dir %>/MyRepMoney-<%= @server_type %>-${date:yyyy-MM-dd}.log"  filePattern="<%= @java_log_dir %>/MyRepMoney-<%= @server_type %>-%d{yyyy-MM-dd}-%i.log">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-    </File>    
+      <Policies>
+        <TimeBasedTriggeringPolicy interval="6" modulate="true"/>
+        <SizeBasedTriggeringPolicy size="50 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="32"/>
+    </RollingFile>    
   </Appenders>
   <Loggers>
-    <Logger name="com.MyRepMoney" level="INFO" additivity="false">
+    <Logger name="com.MyRepMoney" level="<%= @debug_level %>" additivity="false">
       <AppenderRef ref="Console"/>
-      <AppenderRef ref="File"/>
+      <AppenderRef ref="RollingFile"/>
     </Logger>
-    <Logger name="com.cdymek" level="INFO" additivity="false">
+    <Logger name="com.cdymek" level="<%= @debug_level %>" additivity="false">
       <AppenderRef ref="Console"/>
-      <AppenderRef ref="File"/>
+      <AppenderRef ref="RollingFile"/>
     </Logger>    
     <Root level="error">
       <AppenderRef ref="Console"/>
-      <AppenderRef ref="File"/>
+      <AppenderRef ref="RollingFile"/>
     </Root>
   </Loggers>
 </Configuration>

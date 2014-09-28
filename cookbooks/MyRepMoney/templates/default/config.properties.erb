@@ -8,6 +8,7 @@ dataloader.threadcount=<%= @dataloader_threadcount %>
 dataloader.sleeptime=<%= @dataloader_sleeptime %>
 dataloader.monitor_dir=<%= @dataloader_monitor_dir %>
 dataloader.threadclass=com.MyRepMoney.processor.MyRepMoneyDataLoadProcessorTask
+dataloader.messagevisibilitytask.sleeptime=60
 
 #JCS Properties
 jcs.sleeptime=<%= @jcs_sleeptime %>
@@ -27,3 +28,4 @@ AWS_SQS_Queue=<%= @aws_sqs_queue %>
 AWS_Region=<%= @aws_region %>
 AWS_SQS_Message_Delay=1
 AWS_SQS_Url=<%= @aws_sqs_url %>
+AWS_SQS_messagevisibility=65
