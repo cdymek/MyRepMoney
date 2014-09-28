@@ -177,7 +177,14 @@ public class SourceDataSetLoader {
 				if (pstmt != null) {
 					pstmt.close();
 				}
-				conn = null;
+			}
+			catch (Throwable t) {
+				m_logger.warn("Error during db connection cleanup", t);
+			}
+			try {
+				if (conn != null) {
+					conn.close();
+				}
 			}
 			catch (Throwable t) {
 				m_logger.warn("Error during db connection cleanup", t);
@@ -240,7 +247,14 @@ public class SourceDataSetLoader {
 				if (pstmt != null) {
 					pstmt.close();
 				}
-				conn = null;
+			}
+			catch (Throwable t) {
+				m_logger.warn("Error during db connection cleanup", t);
+			}
+			try {
+				if (conn != null) {
+					conn.close();
+				}
 			}
 			catch (Throwable t) {
 				m_logger.warn("Error during db connection cleanup", t);
@@ -279,7 +293,14 @@ public class SourceDataSetLoader {
 				if (pstmt != null) {
 					pstmt.close();
 				}
-				conn = null;
+			}
+			catch (Throwable t) {
+				m_logger.warn("Error during db connection cleanup", t);
+			}
+			try {
+				if (conn != null) {
+					conn.close();
+				}
 			}
 			catch (Throwable t) {
 				m_logger.warn("Error during db connection cleanup", t);

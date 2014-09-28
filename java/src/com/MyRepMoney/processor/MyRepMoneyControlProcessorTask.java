@@ -46,8 +46,8 @@ public class MyRepMoneyControlProcessorTask extends ProcessorTask implements Run
 	 */
 	public void process() {
 		
-		//Initialize a loop
-		m_logger.info("Initializing JCS objects");
+		//Initialize the app
+		m_logger.info("Initializing Job Control Server (JCS) application.");
 		SourceDataSetLoader sdl = new SourceDataSetLoader();
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		DateFormat dton = new SimpleDateFormat("yyyy-MM-dd");
@@ -76,7 +76,7 @@ public class MyRepMoneyControlProcessorTask extends ProcessorTask implements Run
 			}
 						
 			//Get all the entries that need to be processed
-			m_logger.info("Retrieving all records between dates specified|" + sLastRunTimestamp + "|" + sCurrentRunTimestamp);
+			m_logger.debug("Retrieving all records between dates specified|" + sLastRunTimestamp + "|" + sCurrentRunTimestamp);
 			sdss = sdl.findByLastRunTimestamp(lastRunTimestamp, currentRunTimestamp, true);
 			
 			//Push them in to the queue
@@ -85,7 +85,7 @@ public class MyRepMoneyControlProcessorTask extends ProcessorTask implements Run
 				QueueMessage qOutMsg = new QueueMessage();
 				qOutMsg.setMessage(sdss[i].toString());
 				qm.sendMessage(qOutMsg);
-				m_logger.info("Sent Message|" + qOutMsg.toString());
+				m_logger.debug("Sent Message|" + qOutMsg.toString());
 			}
 			
 			//Update the last run date / timestamp

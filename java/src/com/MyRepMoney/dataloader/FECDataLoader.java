@@ -1,5 +1,7 @@
 package com.MyRepMoney.dataloader;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
@@ -13,6 +15,7 @@ import com.cdymek.util.CdymekException;
 import com.cdymek.util.PropertiesManager;
 import com.cdymek.util.UrlDownloadHelper;
 import com.cdymek.util.ZipArchiveHandler;
+import com.cdymek.util.sql.ConnectionManager;
 
 /**
  * This class is an extension of data loader designed to download the data from the FEC.GOV website
@@ -28,7 +31,9 @@ public class FECDataLoader extends DataLoader {
 	 * Constructor that initializes the logger class
 	 */
 	public FECDataLoader() {
+		super();  
 		m_logger = LogManager.getLogger(this.getClass());
+		m_logger.debug("Initializing FECDataLoader");
 	}
 	
 	/**
@@ -37,7 +42,7 @@ public class FECDataLoader extends DataLoader {
 	public void process(SourceDataSet sourceDataSet) throws MyRepMoneyException {
 		
 		//Get the working directory from the properties manager
-		m_logger.info("Processing " + sourceDataSet.toString() + ".");
+		m_logger.info("Processing Source Data Set|" + sourceDataSet.toString());
 		try {
 	
 			String workingDir = PropertiesManager.instance().getProperty("dataloader.workingdir");
@@ -50,18 +55,19 @@ public class FECDataLoader extends DataLoader {
 				String[] extractedFiles = ZipArchiveHandler.instance().extractFiles(localFile, workingDir, null);
 				for (int j = 0; j < extractedFiles.length; j++) {
 					m_logger.debug("Loading file|" + extractedFiles[j]);
-					loadFiletoTable(extractedFiles[j], sourceDataSet.getTargetTable(), sourceDataSet.getDelimiter());
+					loadFiletoTable(extractedFiles[j], sourceDataSet.getTargetTable(), sourceDataSet.getDelimiter(), sourceDataSet.getElectionCycle());
 				}
 			}
 			//If the source file is not supposed to be a zip file, just try loading what was downloaded
 			else {
-				loadFiletoTable(localFile, sourceDataSet.getTargetTable(), sourceDataSet.getDelimiter());
+				loadFiletoTable(localFile, sourceDataSet.getTargetTable(), sourceDataSet.getDelimiter(), sourceDataSet.getElectionCycle());
 			}
-			m_logger.info("File processed|" + localFile);
 		}
 		catch (CdymekException e) {
-			throw new MyRepMoneyException("Exception in process SourceDataSet|" + sourceDataSet.toString(), e);
-		}		
+			m_logger.error("Exception Processing Source Data Set|" + sourceDataSet.toString(), e);
+			throw new MyRepMoneyException("Exception Processing Source Data Set|" + sourceDataSet.toString(), e);
+		}
+		m_logger.info("Source Data Set processed|" + sourceDataSet.toString());
 				
 	}
 	
@@ -90,13 +96,40 @@ public class FECDataLoader extends DataLoader {
 	 * @param localFile
 	 * @param targetTable
 	 */
-	private void loadFiletoTable(String localFile, String targetTable, String delimiter) throws MyRepMoneyException {
-		// TODO Implement SQL query to load the file
-		String sql = "DELETE FROM " + targetTable;
-		executeUpdate(sql);
-		sql = "LOAD DATA LOCAL INFILE '" + localFile + "' INTO TABLE " + targetTable + " FIELDS TERMINATED BY '" + delimiter 
+	private void loadFiletoTable(String localFile, String targetTable, String delimiter, String electionCycle) throws MyRepMoneyException {
+		
+		//Get a connection object
+		Connection conn = null;
+		String sql = null;
+
+		try {
+			conn = ConnectionManager.getInstance().getConnection();
+
+			conn.setAutoCommit(false);
+			sql = "DELETE FROM " + targetTable + " WHERE ELECTION_CYCLE = '" + electionCycle + "'";
+			executeUpdate(conn, sql);
+			sql = "LOAD DATA LOCAL INFILE '" + localFile + "' INTO TABLE " + targetTable + " FIELDS TERMINATED BY '" + delimiter 
 				+ "' ENCLOSED BY '' ESCAPED BY '\\\\' LINES TERMINATED BY '\\n' STARTING BY ''";
-		executeUpdate(sql);
+			executeUpdate(conn, sql);
+			sql = "UPDATE " + targetTable + " SET ELECTION_CYCLE = '" + electionCycle + "' WHERE ELECTION_CYCLE IS NULL";
+			executeUpdate(conn, sql);
+			conn.commit();
+		} 
+		catch (CdymekException | SQLException e) {
+			m_logger.error("Failed to execute transaction", e);
+			throw new MyRepMoneyException("Failed to get connection|" + sql, e);
+		} 
+		finally {
+
+			try {
+				if (conn != null) {
+					conn.close();
+				}
+			}
+			catch (Throwable t) {
+				m_logger.warn("Error during db connection cleanup", t);
+			}
+		}
 	}
 
 	/**

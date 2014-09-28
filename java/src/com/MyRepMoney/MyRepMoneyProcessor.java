@@ -38,18 +38,12 @@ public class MyRepMoneyProcessor {
 	
 		
 		//Start the logger
-		m_logger = LogManager.getLogger("com.MyRepMoney.jcs.MyRepMoneyControlProcessor");
+		m_logger = LogManager.getLogger("com.MyRepMoney.MyRepMoneyProcessor");
 		m_logger.warn("Initializing MyRepMoney Processor.");
-
-		
-
 		
 		//Get the server type and thread class
 		String serverType = null;
 		String threadClass = null;
-
-		
-		m_logger.warn("Initializing MyRepMoney Processor.");		
 		
 		//Prep the queue if we're running in test mode
 		for (int i = 0; i < args.length; i++) {
@@ -107,7 +101,8 @@ public class MyRepMoneyProcessor {
 				for (int i = 0; i < iThreadCount; i++) {
 					try {
 						Constructor c = Class.forName(threadClass).getConstructor(String.class, String.class);
-						ProcessorTask myPT = (ProcessorTask)c.newInstance("Thread" + i, serverType);						
+						int iThreadNum = i + 1;
+						ProcessorTask myPT = (ProcessorTask)c.newInstance(serverType + "-Thread-" + iThreadNum, serverType);						
 						Thread thread = new Thread(myPT);
 						thread.start();
 						pts[i] = myPT;

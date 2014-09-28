@@ -32,9 +32,9 @@ public abstract class ProcessorTask implements Runnable {
 
 	private static Logger m_logger = null;
 		private long sleepTime;
-		private String threadName;
-		private String sType;
-		private volatile boolean running = true;
+		protected String threadName;
+		protected String sType;
+		protected volatile boolean running = true;
 		   
 		/**
 		 * Constructor that initializes the logger class
@@ -58,17 +58,20 @@ public abstract class ProcessorTask implements Runnable {
 		public void run() {
 			
 			while (running) {
-				m_logger.info("Running worker thread.");
+				m_logger.info("Processor Task thread is now awake|" + threadName);
+				long startTime = System.currentTimeMillis();
 				process();
+				long runTime = System.currentTimeMillis() - startTime;
+				m_logger.info("Putting Processor Task thread to sleep|Processor Task Running Time|" + threadName + "|" + runTime + " ms");
 				try {
-					m_logger.info("Putting worker thread to sleep.");
 					Thread.sleep(sleepTime);
 				} catch (InterruptedException e) {
+					//Log the interruption and terminate the process
 					m_logger.fatal(e);
 					running = false;
 				}
 			}
-			m_logger.warn("Worker thread terminated");
+			m_logger.warn("Processor Task thread terminated|" + threadName);
 		}
 		
 		/**
